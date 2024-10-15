@@ -9,7 +9,7 @@ This package adds a simple way to integrate PayPal payments into your Laravel ap
 
 ## Prerequisites
 
-* A configured default Laravel mail driver
+* A configured Laravel database connection
 * PHP 8.2 or higher
 * Laravel 10.0 or higher
 
