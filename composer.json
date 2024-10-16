@@ -30,7 +30,6 @@
     "php": "^8.2|^8.3",
     "illuminate/support": "^11",
     "guzzlehttp/guzzle": "^7.8",
-    "symfony/http-client": "^7.0",
     "paypal/paypal-server-sdk": "^0.6.0"
   },
   "require-dev": {

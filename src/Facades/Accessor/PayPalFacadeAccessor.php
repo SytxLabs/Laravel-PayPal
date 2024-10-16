@@ -1,6 +1,6 @@
 <?php
 
-namespace SytxLabs\PayPal;
+namespace SytxLabs\PayPal\Facades\Accessor;
 
 use SytxLabs\PayPal\Services\PayPal as PayPalClient;
 

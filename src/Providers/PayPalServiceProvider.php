@@ -4,7 +4,8 @@ namespace SytxLabs\PayPal\Providers;
 
 use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Support\ServiceProvider;
-use SytxLabs\PayPal\Services\PayPal;
+use SytxLabs\PayPal\Facades\PayPal;
+use SytxLabs\PayPal\Facades\PayPalOrder;
 
 class PayPalServiceProvider extends ServiceProvider
 {
@@ -34,6 +35,9 @@ class PayPalServiceProvider extends ServiceProvider
     {
         $this->app->singleton('paypal_client', static function () {
             return new PayPal();
+        });
+        $this->app->singleton('paypal_order_client', static function () {
+            return new PayPalOrder();
         });
     }
 }

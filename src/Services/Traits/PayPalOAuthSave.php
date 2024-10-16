@@ -11,24 +11,27 @@ trait PayPalOAuthSave
 {
     use PayPalConfig;
 
-    protected function getConnection(): Connection
+    protected function getConnection(): ?Connection
     {
+        if (!app()->bound('db')) {
+            return null;
+        }
         return DB::connection($this->config['oauth_database_connection'] ?? null);
     }
 
     protected function tableExists(): bool
     {
-        return $this->getConnection()->getSchemaBuilder()->hasTable('sytxlabs_paypal_oauth_tokens');
+        return $this->getConnection()?->getSchemaBuilder()->hasTable('sytxlabs_paypal_oauth_tokens') ?? false;
     }
 
-    protected function table(): Builder
+    protected function table(): ?Builder
     {
-        return $this->getConnection()->table('sytxlabs_paypal_oauth_tokens');
+        return $this->getConnection()?->table('sytxlabs_paypal_oauth_tokens');
     }
 
     public function saveOAuthToken(OAuthToken $token): void
     {
-        if (!$this->tableExists()) {
+        if (!$this->tableExists() || $this->table() === null) {
             return;
         }
         if ($this->table()->count() > 0) {
@@ -46,7 +49,7 @@ trait PayPalOAuthSave
 
     public function loadTokenFromDatabase(): ?OAuthToken
     {
-        if (!$this->tableExists()) {
+        if (!$this->tableExists() || $this->table() === null) {
             return null;
         }
         $token = $this->table()->first();

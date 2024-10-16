@@ -19,10 +19,20 @@ class PayPal
     use PayPalConfig;
     use PayPalOAuthSave;
 
-    private ?PaypalServerSDKClient $client;
+    private ?PaypalServerSDKClient $client = null;
 
     public function build(): self
     {
+        $loggingConfig = null;
+
+        if (isset($this->config['logging']['enabled']) && ($this->config['logging']['enabled'] ?? false)) {
+            $loggingConfig =
+                LoggingConfigurationBuilder::init()
+                    ->level($this->config['logging']['level'] ?? LogLevel::INFO)
+                    ->requestConfiguration(RequestLoggingConfigurationBuilder::init()->body(true))
+                    ->responseConfiguration(ResponseLoggingConfigurationBuilder::init()->headers(true));
+        }
+
         $client = PaypalServerSDKClientBuilder::init()
             ->clientCredentialsAuthCredentials(
                 ClientCredentialsAuthCredentialsBuilder::init(
@@ -36,13 +46,10 @@ class PayPal
                     $this->saveOAuthToken($oAuthToken);
                 })
             )
-            ->environment($this->mode->getPayPalEnvironment())
-            ->loggingConfiguration(
-                LoggingConfigurationBuilder::init()
-                    ->level(LogLevel::INFO)
-                    ->requestConfiguration(RequestLoggingConfigurationBuilder::init()->body(true))
-                    ->responseConfiguration(ResponseLoggingConfigurationBuilder::init()->headers(true))
-            );
+            ->environment($this->mode->getPayPalEnvironment());
+        if ($loggingConfig !== null) {
+            $client->loggingConfiguration($loggingConfig);
+        }
         if (isset($this->config['timeout']) && is_numeric($this->config['timeout'])) {
             $client->timeout($this->config['timeout']);
         }
@@ -53,5 +60,10 @@ class PayPal
 
         $this->client = $client->build();
         return $this;
+    }
+
+    public function getClient(): ?PaypalServerSDKClient
+    {
+        return $this->client;
     }
 }

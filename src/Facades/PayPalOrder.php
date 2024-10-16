@@ -3,12 +3,12 @@
 namespace SytxLabs\PayPal\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use SytxLabs\PayPal\Facades\Accessor\PayPalFacadeAccessor;
+use SytxLabs\PayPal\Facades\Accessor\PayPalOrderFacadeAccessor;
 
-class PayPal extends Facade
+class PayPalOrder extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return PayPalFacadeAccessor::class;
+        return PayPalOrderFacadeAccessor::class;
     }
 }
