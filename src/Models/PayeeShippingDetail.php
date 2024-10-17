@@ -16,6 +16,9 @@ class PayeeShippingDetail
 
     public function __construct(public ?string $name, private ?PayPalFulfillmentType $type = null)
     {
+        if ($this->type === PayPalFulfillmentType::Digital) {
+            $this->type = null;
+        }
     }
 
     public function setAddress(?AddressBuilder $address): self
