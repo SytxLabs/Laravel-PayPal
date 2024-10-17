@@ -25,8 +25,8 @@ return [
     'locale' => env('PAYPAL_LOCALE', 'en_US'), // force gateway language  i.e. it_IT, es_ES, en_US ... (for express checkout only)
     'validate_ssl' => env('PAYPAL_VALIDATE_SSL', true), // Validate SSL when creating api client.
 
-    'success_route' => route('sytxlabs.paypal.success'), // Redirect route on successful payment
-    'cancel_route' => route('sytxlabs.paypal.cancel'), // Redirect route on canceled payment
+    'success_route' => '', // Redirect route on successful payment as example route('sytxlabs.paypal.success')
+    'cancel_route' => '', // Redirect route on canceled payment as example route('sytxlabs.paypal.cancel')
 
     'logging' => [
         'enabled' => env('PAYPAL_LOGGING_ENABLED', true), // Enable logging
