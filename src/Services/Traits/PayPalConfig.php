@@ -38,5 +38,8 @@ trait PayPalConfig
                 $this->config[$key] = $value;
             });
         }
+        if (isset($this->config['currency'])) {
+            $this->currency = $this->config['currency'];
+        }
     }
 }

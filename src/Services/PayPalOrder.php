@@ -5,7 +5,12 @@ namespace SytxLabs\PayPal\Services;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\ResponseFactory;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use PaypalServerSDKLib\Controllers\OrdersController;
+use PaypalServerSDKLib\Models\Builders\AmountBreakdownBuilder;
+use PaypalServerSDKLib\Models\Builders\AmountWithBreakdownBuilder;
+use PaypalServerSDKLib\Models\Builders\ItemBuilder;
+use PaypalServerSDKLib\Models\Builders\MoneyBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderApplicationContextBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderRequestBuilder;
@@ -20,6 +25,7 @@ use PaypalServerSDKLib\Models\PaymentSource;
 use RuntimeException;
 use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
 use SytxLabs\PayPal\Models\Order as OrderModel;
+use SytxLabs\PayPal\Models\Product;
 use SytxLabs\PayPal\Services\Traits\PayPalOrderSave;
 
 class PayPalOrder extends PayPal
@@ -45,7 +51,7 @@ class PayPalOrder extends PayPal
     public function build(): self
     {
         parent::build();
-        $this->controller = $this->getClient()->getOrdersController();
+        $this->controller = $this->getClient()?->getOrdersController();
         return $this;
     }
 
@@ -62,9 +68,9 @@ class PayPalOrder extends PayPal
         return $this;
     }
 
-    public function addProduct(PurchaseUnitRequestBuilder $product): self
+    public function addProduct(Product $product): self
     {
-        $this->items->push($product->build());
+        $this->items->push($product);
         return $this;
     }
 
@@ -92,6 +98,9 @@ class PayPalOrder extends PayPal
     public function createOrder(): self
     {
         $client = $this->controller ?? $this->build()->controller;
+        if ($client === null) {
+            throw new RuntimeException('PayPal client not found');
+        }
         $applicationContext = $this->applicationContext;
         if ($applicationContext === null) {
             $applicationContext = OrderApplicationContextBuilder::init();
@@ -113,9 +122,59 @@ class PayPalOrder extends PayPal
         if (($this->config['cancel_route'] ?? null) !== null) {
             $applicationContext = $applicationContext->cancelUrl($this->config['cancel_route']);
         }
+        $grouped = $this->items->groupBy(static fn (Product $item) => $item->payee?->getEmailAddress() !== null ? $item->payee->getEmailAddress() . '_' . ($item->payee?->getMerchantId() ?? '') : '');
+        if ($grouped->count() > 10) {
+            throw new RuntimeException('Maximum of 10 payees allowed per order');
+        }
+        $purchaseUnits = [];
+        foreach ($grouped as $sortedItems) {
+            $totalItems = 0;
+            $taxTotals = 0;
+            $shippingTotals = 0;
+            $discountTotals = 0;
+            $shippingDiscountTotals = 0;
+            $currencyCode = $this->currency;
+            $items = [];
+            $payee = null;
+            foreach ($sortedItems as $item) {
+                $totalItems += $item->totalPrice ?? ($item->unitPrice * $item->quantity);
+                $taxTotals = $item->tax ?? 0;
+                $shippingTotals = $item->shipping ?? 0;
+                $discountTotals = $item->discount ?? 0;
+                $shippingDiscountTotals = $item->shippingDiscount ?? 0;
+                $items[] = ItemBuilder::init($item->name, MoneyBuilder::init($item->currencyCode ?? $this->currency, $item->unitPrice . '')->build(), $item->quantity . '')
+                    ->imageUrl($item->imageUrl)
+                    ->sku($item->sku)
+                    ->description($item->description)
+                    ->category($item->category?->value)
+                    ->url($item->url)
+                    ->upc($item->upc)
+                    ->tax(MoneyBuilder::init($item->currencyCode ?? $this->currency, ($item->tax ?? 0) . '')->build())
+                    ->build();
+                if ($item->payee !== null && $payee === null) {
+                    $payee = $item->payee;
+                }
+                if ($item->currencyCode !== null) {
+                    $currencyCode = $item->currencyCode;
+                }
+            }
+            $purchaseUnits[] = PurchaseUnitRequestBuilder::init(
+                AmountWithBreakdownBuilder::init($currencyCode, ($totalItems + $taxTotals + $shippingTotals) . '')->breakdown(
+                    AmountBreakdownBuilder::init()
+                        ->itemTotal(MoneyBuilder::init($currencyCode, $totalItems)->build())
+                        ->taxTotal(MoneyBuilder::init($currencyCode, $taxTotals)->build())
+                        ->shipping(MoneyBuilder::init($currencyCode, $shippingTotals)->build())
+                        ->shippingDiscount(MoneyBuilder::init($currencyCode, $shippingDiscountTotals)->build())
+                        ->discount(MoneyBuilder::init($currencyCode, $discountTotals)->build())
+                        ->shippingDiscount(MoneyBuilder::init($currencyCode, $shippingTotals)->build())
+                    ->build()
+                )->build()
+            )->payee($payee)->referenceId($payee?->referenceId ?? Str::random())->items($items)->build();
+        }
+
         $this->payPalRequestId ??= $this->generateRequestId();
         $apiResponse = $client->ordersCreate([
-            'body' => OrderRequestBuilder::init($this->intent, $this->items->values()->toArray())
+            'body' => OrderRequestBuilder::init($this->intent, $purchaseUnits)
                     ->paymentSource($this->paymentSource)
                     ->applicationContext($applicationContext->build())
                     ->payer($this->payer)
@@ -188,12 +247,12 @@ class PayPalOrder extends PayPal
         return $approveLink->getHref();
     }
 
-    /**
-     * @throws RuntimeException
-     */
-    public function checkIfCompleted(): PayPalOrderCompletionType
+    public function captureOrder(): self
     {
         $client = $this->controller ?? $this->build()->controller;
+        if ($client === null) {
+            throw new RuntimeException('PayPal client not found');
+        }
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
@@ -209,9 +268,20 @@ class PayPalOrder extends PayPal
             ]);
         }
         if ($apiResponse->isError()) {
-            throw new RuntimeException($apiResponse->getReasonPhrase() ?? 'An error occurred');
+            throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = $apiResponse->getResult();
+        return $this;
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    public function getOrderStatus(): PayPalOrderCompletionType
+    {
+        if ($this->order === null) {
+            throw new RuntimeException('Order not found');
+        }
         $this->saveOrderToDatabase($this->order);
         return PayPalOrderCompletionType::tryFrom(strtoupper($this->order->getStatus() ?? '')) ?? PayPalOrderCompletionType::UNKNOWN;
     }

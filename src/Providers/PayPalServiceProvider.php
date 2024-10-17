@@ -14,11 +14,11 @@ class PayPalServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__ . '/../config/paypal.php' => config_path('paypal.php'),
-            ], 'paypal-config');
+            ], 'sytxlabs-paypal-config');
 
             $this->publishesMigrations([
                 __DIR__ . '/../../database/migrations' => database_path('migrations'),
-            ], 'paypal-migrations');
+            ], 'sytxlabs-paypal-migrations');
 
             AboutCommand::add('SytxLabs Laravel Paypal Package', static fn () => ['Version' => '1.0.0', 'Author' => 'SytxLabs']);
         }

@@ -21,3 +21,56 @@ composer require sytxlabs/laravel-paypal
 
 ## Using
 - [PayPal SDK](https://developer.paypal.com/serversdk/php/getting-started/how-to-get-started)
+- [PayPal API Reference](https://developer.paypal.com/docs/api/overview/)
+- [PayPal Account](https://developer.paypal.com/docs/api-basics/sandbox/accounts/)
+
+## Configuration
+
+```sh
+php artisan vendor:publish --tag="sytxlabs-paypal-config"
+```
+the configuration file is located at `config/paypal.php`
+
+## Optional Database
+
+```sh
+php artisan vendor:publish --tag="sytxlabs-paypal-migrations"
+php artisan migrate
+```
+
+## Usage
+
+### Create a new PayPal Order
+```php
+use SytxLabs\PayPal\PayPalOrder;
+
+$paypalOrder = new PayPalOrder();
+
+$paypalOrder->addProduct(new Product('Product 1', 10.00, 1));
+
+$paypalOrder->createOrder();
+```
+
+### Redirect to PayPal
+```php
+$paypalOrder->approveOrderRedirect();
+```
+or get the approval link
+```php
+$paypalOrder->getApprovalLink();
+```
+
+### Capture the payment
+```php
+$paypalOrder->captureOrder();
+```
+
+### Check the payment status
+```php
+$paypalOrder->captureOrder()->getOrderStatus();
+```
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE) for more information.
+
