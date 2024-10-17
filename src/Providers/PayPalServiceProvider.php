@@ -14,7 +14,7 @@ class PayPalServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->publishes([
                 __DIR__ . '/../config/paypal.php' => config_path('paypal.php'),
-            ], 'paypal');
+            ], 'paypal-config');
 
             $this->publishesMigrations([
                 __DIR__ . '/../../database/migrations' => database_path('migrations'),
