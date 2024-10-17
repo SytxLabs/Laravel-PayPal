@@ -19,11 +19,7 @@ return [
     ],
     'timeout' => env('PAYPAL_TIMEOUT'),
 
-    'payment_action' => env('PAYPAL_PAYMENT_ACTION', 'Sale'), // Can only be 'Sale', 'Authorization' or 'Order'
     'currency' => env('PAYPAL_CURRENCY', 'USD'), // https://developer.paypal.com/api/rest/reference/currency-codes/ for full list of currency codes
-    'notify_url' => env('PAYPAL_NOTIFY_URL', ''), // Change this accordingly for your application.
-    'locale' => env('PAYPAL_LOCALE', 'en_US'), // force gateway language  i.e. it_IT, es_ES, en_US ... (for express checkout only)
-    'validate_ssl' => env('PAYPAL_VALIDATE_SSL', true), // Validate SSL when creating api client.
 
     'success_route' => '', // Redirect route on successful payment as example route('sytxlabs.paypal.success')
     'cancel_route' => '', // Redirect route on canceled payment as example route('sytxlabs.paypal.cancel')

@@ -22,7 +22,7 @@ $paypal->addProduct(Product::fromArray([
     'quantity' => 19,
     'currencyCode' => 'USD',
     'description' => 'test',
-    'url' => 'http://wilma.localhost/product/2/WiLMa%25C2%25AE-Marketingportal%2BBrosch%25C3%25BCre%2BProduct2Print',
+    'url' => 'http://localhost/product/2',
     'category' => PayPalItemCategory::DIGITAL_GOODS,
     'imageUrl' => null,
     'upc' => null,
