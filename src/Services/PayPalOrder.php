@@ -5,6 +5,7 @@ namespace SytxLabs\PayPal\Services;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\ResponseFactory;
 use Illuminate\Support\Collection;
+use PaypalServerSDKLib\Controllers\OrdersController;
 use PaypalServerSDKLib\Models\Builders\OrderApplicationContextBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderRequestBuilder;
@@ -25,6 +26,7 @@ class PayPalOrder extends PayPal
 {
     use PayPalOrderSave;
 
+    private ?OrdersController $controller = null;
     private string $intent = CheckoutPaymentIntent::CAPTURE;
     private Collection $items;
     private ?PaymentSource $paymentSource = null;
@@ -38,6 +40,13 @@ class PayPalOrder extends PayPal
     {
         parent::__construct($config);
         $this->items = new Collection();
+    }
+
+    public function build(): self
+    {
+        parent::build();
+        $this->controller = $this->getClient()->getOrdersController();
+        return $this;
     }
 
     /**
@@ -82,10 +91,7 @@ class PayPalOrder extends PayPal
      */
     public function createOrder(): self
     {
-        $client = $this->getClient();
-        if ($client === null) {
-            $client = $this->build()->getClient();
-        }
+        $client = $this->controller ?? $this->build()->controller;
         $applicationContext = $this->applicationContext;
         if ($applicationContext === null) {
             $applicationContext = OrderApplicationContextBuilder::init();
@@ -98,6 +104,9 @@ class PayPalOrder extends PayPal
         if ($this->items->count() < 1) {
             throw new RuntimeException('No items added to the order');
         }
+        if ($this->items->count() > 10) {
+            throw new RuntimeException('Maximum of 10 items allowed per order');
+        }
         if (($this->config['success_route'] ?? null) !== null) {
             $applicationContext = $applicationContext->returnUrl($this->config['success_route']);
         }
@@ -105,8 +114,7 @@ class PayPalOrder extends PayPal
             $applicationContext = $applicationContext->cancelUrl($this->config['cancel_route']);
         }
         $this->payPalRequestId ??= $this->generateRequestId();
-
-        $apiResponse = $client->getOrdersController()->ordersCreate([
+        $apiResponse = $client->ordersCreate([
             'body' => OrderRequestBuilder::init($this->intent, $this->items->values()->toArray())
                     ->paymentSource($this->paymentSource)
                     ->applicationContext($applicationContext->build())
@@ -131,7 +139,7 @@ class PayPalOrder extends PayPal
     public function setOrder(Order|OrderModel $order): self
     {
         if ($order instanceof OrderModel) {
-            $order = $order->payPalOrder->build();
+            $order = $order->payPalOrder;
         }
         $this->order = $order;
         return $this;
@@ -185,20 +193,17 @@ class PayPalOrder extends PayPal
      */
     public function checkIfCompleted(): PayPalOrderCompletionType
     {
-        $client = $this->getClient() ?? $this->build()->getClient();
-        if ($client === null) {
-            $client = $this->build()->getClient();
-        }
+        $client = $this->controller ?? $this->build()->controller;
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
         if (($this->order->getIntent() ?? $this->intent) !== CheckoutPaymentIntent::AUTHORIZE) {
-            $apiResponse = $client->getOrdersController()->ordersCapture([
+            $apiResponse = $client->ordersCapture([
                 'id' => $this->order->getId(),
                 'payPalRequestId' => $this->payPalRequestId,
             ]);
         } else {
-            $apiResponse = $client->getOrdersController()->ordersAuthorize([
+            $apiResponse = $client->ordersAuthorize([
                 'id' => $this->order->getId(),
                 'payPalRequestId' => $this->payPalRequestId,
             ]);
