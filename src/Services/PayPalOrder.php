@@ -14,13 +14,16 @@ use PaypalServerSDKLib\Models\Builders\MoneyBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderApplicationContextBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderRequestBuilder;
+use PaypalServerSDKLib\Models\Builders\OrderTrackerRequestBuilder;
 use PaypalServerSDKLib\Models\Builders\PayerBuilder;
+use PaypalServerSDKLib\Models\Builders\PaymentInstructionBuilder;
 use PaypalServerSDKLib\Models\Builders\PaymentSourceBuilder;
 use PaypalServerSDKLib\Models\Builders\PurchaseUnitRequestBuilder;
 use PaypalServerSDKLib\Models\CheckoutPaymentIntent;
 use PaypalServerSDKLib\Models\LinkDescription;
 use PaypalServerSDKLib\Models\Order;
 use PaypalServerSDKLib\Models\Payer;
+use PaypalServerSDKLib\Models\PaymentInstruction;
 use PaypalServerSDKLib\Models\PaymentSource;
 use RuntimeException;
 use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
@@ -38,6 +41,7 @@ class PayPalOrder extends PayPal
     private ?PaymentSource $paymentSource = null;
     private ?OrderApplicationContextBuilder $applicationContext = null;
     private ?Payer $payer = null;
+    private ?PaymentInstruction $platformInstruction = null;
 
     private ?string $payPalRequestId = null;
     private ?Order $order = null;
@@ -89,6 +93,12 @@ class PayPalOrder extends PayPal
     public function setPayer(?PayerBuilder $payer): self
     {
         $this->payer = $payer?->build();
+        return $this;
+    }
+
+    public function setPlatformFee(?PaymentInstructionBuilder $platformInstruction): self
+    {
+        $this->platformInstruction = $platformInstruction?->build();
         return $this;
     }
 
@@ -169,7 +179,13 @@ class PayPalOrder extends PayPal
                         ->shippingDiscount(MoneyBuilder::init($currencyCode, $shippingTotals)->build())
                     ->build()
                 )->build()
-            )->payee($payee)->referenceId($payee?->referenceId ?? Str::random())->items($items)->build();
+            )
+                ->payee($payee)
+                ->paymentInstruction($this->platformInstruction)
+                ->shipping($payee?->shippingDetail?->build())
+                ->referenceId($payee?->referenceId ?? Str::random())
+                ->items($items)
+                ->build();
         }
 
         $this->payPalRequestId ??= $this->generateRequestId();
@@ -284,5 +300,25 @@ class PayPalOrder extends PayPal
         }
         $this->saveOrderToDatabase($this->order);
         return PayPalOrderCompletionType::tryFrom(strtoupper($this->order->getStatus() ?? '')) ?? PayPalOrderCompletionType::UNKNOWN;
+    }
+
+    public function createTracking(OrderTrackerRequestBuilder $builder): self
+    {
+        $client = $this->controller ?? $this->build()->controller;
+        if ($client === null) {
+            throw new RuntimeException('PayPal client not found');
+        }
+        if ($this->order === null) {
+            throw new RuntimeException('Order not found');
+        }
+        $apiResponse = $client->ordersTrackCreate([
+            'id' => $this->order->getId(),
+            'body' => $builder->build(),
+        ]);
+        if ($apiResponse->isError()) {
+            throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
+        }
+        $this->order = $apiResponse->getResult();
+        return $this;
     }
 }
