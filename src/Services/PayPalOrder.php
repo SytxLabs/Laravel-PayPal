@@ -178,7 +178,7 @@ class PayPalOrder extends PayPal
             'payPalRequestId' => $this->payPalRequestId,
         ]);
         if ($apiResponse->isError() || !($apiResponse->getResult() instanceof Order)) {
-            throw new RuntimeException($apiResponse->getReasonPhrase() ?? 'An error occurred');
+            throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = $apiResponse->getResult();
         $this->order->setIntent($this->intent);

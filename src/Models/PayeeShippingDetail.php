@@ -5,6 +5,7 @@ namespace SytxLabs\PayPal\Models;
 use PaypalServerSDKLib\Models\Address;
 use PaypalServerSDKLib\Models\Builders\AddressBuilder;
 use PaypalServerSDKLib\Models\Builders\ShippingDetailsBuilder;
+use PaypalServerSDKLib\Models\Builders\ShippingNameBuilder;
 use PaypalServerSDKLib\Models\PhoneNumberWithCountryCode;
 use PaypalServerSDKLib\Models\ShippingDetails;
 use SytxLabs\PayPal\Enums\PayPalFulfillmentType;
@@ -37,7 +38,7 @@ class PayeeShippingDetail
 
     public function build(): ShippingDetails
     {
-        return ShippingDetailsBuilder::init()->name($this->name)
+        return ShippingDetailsBuilder::init()->name(ShippingNameBuilder::init()->fullName($this->name)->build())
             ->type($this->type->value)
             ->address($this->address)
             ->phoneNumber($this->phoneNumber)
