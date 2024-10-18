@@ -48,11 +48,17 @@
         "laravel": {
             "providers": [
                 "SytxLabs\\PayPal\\Providers\\PayPalServiceProvider"
-            ]
+            ],
+            "aliases": {
+                "PayPal": "SytxLabs\\PayPal\\Facades\\PayPal",
+                "PayPalOrder": "SytxLabs\\PayPal\\Facades\\PayPalOrder"
+            }
         }
     },
     "scripts": {
         "cs": "pint --config vendor/portavice/laravel-pint-config/pint.json --test",
         "csfix": "pint --config vendor/portavice/laravel-pint-config/pint.json"
-    }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }
