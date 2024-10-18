@@ -2,7 +2,6 @@
 
 namespace SytxLabs\PayPal\Models;
 
-use InvalidArgumentException;
 use PaypalServerSDKLib\Models\UniversalProductCode;
 use SytxLabs\PayPal\Enums\PayPalItemCategory;
 
@@ -10,15 +9,15 @@ class Product
 {
     public string $name;
     public float $unitPrice;
-    public ?string $currencyCode;
-    public ?float $totalPrice;
-    public ?float $tax;
+    public ?string $currencyCode = null;
+    public ?float $totalPrice = null;
+    public ?float $tax = null;
     public int $quantity = 1;
-    public ?string $sku;
-    public ?string $description;
-    public ?string $url;
+    public ?string $sku = null;
+    public ?string $description = null;
+    public ?string $url = null;
     public ?PayPalItemCategory $category = null;
-    public ?string $imageUrl;
+    public ?string $imageUrl = null;
     public ?UniversalProductCode $upc = null;
     public ?Payee $payee = null;
     public ?float $shipping = null;
@@ -88,7 +87,7 @@ class Product
             return $this;
         }
         if (strlen($imageUrl) > 2048) {
-            throw new InvalidArgumentException('Image URL must be less than 2048 characters');
+            return $this;
         }
         if (!preg_match('/^(https:\/\/)([\/|.\w\s-])*\.(?:jpg|gif|png|jpeg|JPG|GIF|PNG|JPEG)$/', $imageUrl)) {
             return $this;
