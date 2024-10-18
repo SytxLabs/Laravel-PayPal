@@ -1,56 +1,58 @@
 {
-  "name": "sytxlabs/laravel-paypal",
-  "description": "A Laravel package to interact with PayPal",
-  "type": "library",
-  "license": "MIT",
-  "keywords": [
-    "laravel",
-    "paypal",
-    "payment",
-    "payment-gateway",
-    "payment-processor",
-    "payment-service",
-    "payment-solution",
-    "payment-system"
-  ],
-  "authors": [
-    {
-      "name": "Shaun Lüdeke",
-      "email": "info@sytxlabs.eu",
-      "homepage": "https://sytxlabs.eu",
-      "role": "Developer"
+    "name": "sytxlabs/laravel-paypal",
+    "description": "A Laravel package to interact with PayPal",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "laravel",
+        "paypal",
+        "payment",
+        "payment-gateway",
+        "payment-processor",
+        "payment-service",
+        "payment-solution",
+        "payment-system"
+    ],
+    "authors": [
+        {
+            "name": "Shaun Lüdeke",
+            "email": "info@sytxlabs.eu",
+            "homepage": "https://sytxlabs.eu",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://sytxlabs.eu",
+    "readme": "README.md",
+    "autoload": {
+        "psr-4": {
+            "SytxLabs\\PayPal\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^8.2|^8.3",
+        "illuminate/support": "^11",
+        "guzzlehttp/guzzle": "^7.8",
+        "paypal/paypal-server-sdk": "^0.6.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.5|^9.1",
+        "portavice/laravel-pint-config": "^2.0"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "SytxLabs\\PayPal\\Providers\\PayPalServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "cs": "pint --config vendor/portavice/laravel-pint-config/pint.json --test",
+        "csfix": "pint --config vendor/portavice/laravel-pint-config/pint.json"
     }
-  ],
-  "autoload": {
-    "psr-4": {
-      "SytxLabs\\PayPal\\": "src/"
-    }
-  },
-  "require": {
-    "php": "^8.2|^8.3",
-    "illuminate/support": "^11",
-    "guzzlehttp/guzzle": "^7.8",
-    "paypal/paypal-server-sdk": "^0.6.0"
-  },
-  "require-dev": {
-    "orchestra/testbench": "^8.5|^9.1",
-    "portavice/laravel-pint-config": "^2.0"
-  },
-  "config": {
-    "sort-packages": true,
-    "allow-plugins": {
-      "php-http/discovery": true
-    }
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "SytxLabs\\PayPal\\Providers\\PayPalServiceProvider"
-      ]
-    }
-  },
-  "scripts": {
-    "cs": "pint --config vendor/portavice/laravel-pint-config/pint.json --test",
-    "csfix": "pint --config vendor/portavice/laravel-pint-config/pint.json"
-  }
 }
