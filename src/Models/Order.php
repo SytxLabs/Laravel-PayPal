@@ -35,10 +35,10 @@ class Order extends Model
 
     public function getTable(): string
     {
-        if (!PayPal::getProvider()) {
+        if (!PayPalOrder::getProvider()) {
             return 'sytxlabs_paypal_orders';
         }
-        return PayPal::getProvider()?->config['database']['order_table'] ?? 'sytxlabs_paypal_orders';
+        return PayPalOrder::getProvider()?->config['database']['order_table'] ?? 'sytxlabs_paypal_orders';
     }
 
     public function getConnectionName(): ?string
