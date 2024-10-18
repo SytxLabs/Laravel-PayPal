@@ -287,6 +287,7 @@ class PayPalOrder extends PayPal
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = $apiResponse->getResult();
+        $this->saveOrderToDatabase($this->order);
         return $this;
     }
 
@@ -298,7 +299,6 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
-        $this->saveOrderToDatabase($this->order);
         return PayPalOrderCompletionType::tryFrom(strtoupper($this->order->getStatus() ?? '')) ?? PayPalOrderCompletionType::UNKNOWN;
     }
 
@@ -319,6 +319,7 @@ class PayPalOrder extends PayPal
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = $apiResponse->getResult();
+        $this->saveOrderToDatabase($this->order);
         return $this;
     }
 }
