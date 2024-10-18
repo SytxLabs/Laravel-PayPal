@@ -6,7 +6,7 @@ use SytxLabs\PayPal\Services\PayPalOrder as PayPalOrderClient;
 
 class PayPalOrderFacadeAccessor
 {
-    public static ?PayPalOrderClient $provider;
+    public static ?PayPalOrderClient $provider = null;
 
     public static function getProvider(): ?PayPalOrderClient
     {

@@ -6,7 +6,7 @@ use SytxLabs\PayPal\Services\PayPal as PayPalClient;
 
 class PayPalFacadeAccessor
 {
-    public static ?PayPalClient $provider;
+    public static ?PayPalClient $provider = null;
 
     public static function getProvider(): ?PayPalClient
     {
