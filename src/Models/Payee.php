@@ -21,7 +21,7 @@ class Payee extends \PaypalServerSDKLib\Models\Payee
         $this->setEmailAddress($email);
         $this->setMerchantId($merchantId);
 
-        $this->referenceId = Str::snake($referenceId);
+        $this->referenceId = Str::snake(Str::lower($referenceId));
         $this->shippingDetail = $shippingDetail;
     }
 }
