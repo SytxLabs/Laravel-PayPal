@@ -10,14 +10,14 @@ use PaypalServerSDKLib\Models\Order as PayPalOrder;
 use SytxLabs\PayPal\Facades\PayPal;
 
 /**
- * @property string order_id
- * @property ?string intent
- * @property ?string processing_instruction
- * @property ?string status
- * @property ?array links
+ * @property string $order_id
+ * @property ?string $intent
+ * @property ?string $processing_instruction
+ * @property ?string $status
+ * @property ?array $links
  *
- * @property-read PayPalOrder payPalOrder {@see self::payPalOrder}
- * @property-read Model orderable {@see self::orderable}
+ * @property-read PayPalOrder $payPalOrder {@see self::payPalOrder}
+ * @property-read Model $orderable {@see self::orderable}
  */
 class Order extends Model
 {
