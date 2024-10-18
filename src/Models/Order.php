@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use PaypalServerSDKLib\Models\Builders\OrderBuilder;
 use PaypalServerSDKLib\Models\Order as PayPalOrder;
+use SytxLabs\PayPal\Facades\Accessor\PayPalOrderFacadeAccessor;
 use SytxLabs\PayPal\Facades\PayPal;
 
 /**
@@ -35,10 +36,10 @@ class Order extends Model
 
     public function getTable(): string
     {
-        if (!PayPalOrder::getProvider()) {
+        if (PayPalOrderFacadeAccessor::getProvider() === null) {
             return 'sytxlabs_paypal_orders';
         }
-        return PayPalOrder::getProvider()?->config['database']['order_table'] ?? 'sytxlabs_paypal_orders';
+        return PayPalOrderFacadeAccessor::getProvider()?->config['database']['order_table'] ?? 'sytxlabs_paypal_orders';
     }
 
     public function getConnectionName(): ?string
