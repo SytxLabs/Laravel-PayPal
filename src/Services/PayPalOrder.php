@@ -139,14 +139,15 @@ class PayPalOrder extends PayPal
             $items = [];
             $payee = $sortedItems->first()?->payee;
             foreach ($sortedItems as $item) {
-                $items[] = ItemBuilder::init($item->name, MoneyBuilder::init($item->currencyCode ?? $this->currency, $item->unitPrice . '')->build(), $item->quantity . '')
+                $code = $item->currencyCode ?? $this->currency ?? 'USD';
+                $items[] = ItemBuilder::init($item->name, MoneyBuilder::init($code, $item->unitPrice . '')->build(), $item->quantity . '')
                     ->imageUrl($item->imageUrl)
                     ->sku($item->sku)
                     ->description($item->description)
                     ->category($item->category?->value)
                     ->url($item->url)
                     ->upc($item->upc)
-                    ->tax(MoneyBuilder::init($item->currencyCode ?? $this->currency, ($item->tax ?? 0) . '')->build())
+                    ->tax(MoneyBuilder::init($code, ($item->tax ?? 0) . '')->build())
                     ->build();
             }
             $purchaseUnits[] = PurchaseUnitRequestBuilder::init(
