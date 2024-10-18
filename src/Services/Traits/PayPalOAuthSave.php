@@ -19,19 +19,19 @@ trait PayPalOAuthSave
         return DB::connection($this->config['database']['connection'] ?? null);
     }
 
-    protected function tableName(): string
+    protected function oAuthTableName(): string
     {
         return $this->config['database']['oauth_table'] ?? 'sytxlabs_paypal_oauth_tokens';
     }
 
     protected function tableExists(): bool
     {
-        return $this->getConnection()?->getSchemaBuilder()->hasTable($this->tableName()) ?? false;
+        return $this->getConnection()?->getSchemaBuilder()->hasTable($this->oAuthTableName()) ?? false;
     }
 
     protected function table(): ?Builder
     {
-        return $this->getConnection()?->table($this->tableName());
+        return $this->getConnection()?->table($this->oAuthTableName());
     }
 
     public function saveOAuthToken(OAuthToken $token): void

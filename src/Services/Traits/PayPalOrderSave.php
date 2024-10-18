@@ -19,14 +19,14 @@ trait PayPalOrderSave
         return DB::connection($this->config['database']['connection'] ?? null);
     }
 
-    protected function tableName(): string
+    protected function orderTableName(): string
     {
         return $this->config['database']['order_table'] ?? 'sytxlabs_paypal_orders';
     }
 
     protected function tableExists(): bool
     {
-        return $this->getConnection()?->getSchemaBuilder()->hasTable($this->tableName()) ?? false;
+        return $this->getConnection()?->getSchemaBuilder()->hasTable($this->orderTableName()) ?? false;
     }
 
     public function saveOrderToDatabase(PayPalOrder $order): Order|PayPalOrder
