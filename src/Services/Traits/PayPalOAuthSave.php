@@ -24,25 +24,25 @@ trait PayPalOAuthSave
         return $this->config['database']['oauth_table'] ?? 'sytxlabs_paypal_oauth_tokens';
     }
 
-    protected function tableExists(): bool
+    protected function oAuthTableExists(): bool
     {
         return $this->getConnection()?->getSchemaBuilder()->hasTable($this->oAuthTableName()) ?? false;
     }
 
-    protected function table(): ?Builder
+    protected function oAuthTable(): ?Builder
     {
         return $this->getConnection()?->table($this->oAuthTableName());
     }
 
     public function saveOAuthToken(OAuthToken $token): void
     {
-        if (!$this->tableExists() || $this->table() === null) {
+        if (!$this->oAuthTableExists() || $this->oAuthTable() === null) {
             return;
         }
-        if ($this->table()->count() > 0) {
-            $this->table()->delete();
+        if ($this->oAuthTable()->count() > 0) {
+            $this->oAuthTable()->delete();
         }
-        $this->table()->insert([
+        $this->oAuthTable()->insert([
             'access_token' => $token->getAccessToken(),
             'token_type' => $token->getTokenType(),
             'expiry' => $token->getExpiry(),
@@ -54,10 +54,10 @@ trait PayPalOAuthSave
 
     public function loadTokenFromDatabase(): ?OAuthToken
     {
-        if (!$this->tableExists() || $this->table() === null) {
+        if (!$this->oAuthTableExists() || $this->oAuthTable() === null) {
             return null;
         }
-        $token = $this->table()->first();
+        $token = $this->oAuthTable()->first();
         if ($token === null) {
             return null;
         }

@@ -24,14 +24,14 @@ trait PayPalOrderSave
         return $this->config['database']['order_table'] ?? 'sytxlabs_paypal_orders';
     }
 
-    protected function tableExists(): bool
+    protected function orderTableExists(): bool
     {
         return $this->getConnection()?->getSchemaBuilder()->hasTable($this->orderTableName()) ?? false;
     }
 
     public function saveOrderToDatabase(PayPalOrder $order): Order|PayPalOrder
     {
-        if (!$this->tableExists()) {
+        if (!$this->orderTableExists()) {
             return $order;
         }
         return Order::query()->updateOrCreate(['order_id' => $order->getId()], [
@@ -44,7 +44,7 @@ trait PayPalOrderSave
 
     public function loadOrderFromDatabase(string $id): ?Order
     {
-        if (!$this->tableExists()) {
+        if (!$this->orderTableExists()) {
             return null;
         }
         return Order::query()->firstWhere('order_id', $id);

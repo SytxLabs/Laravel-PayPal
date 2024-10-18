@@ -13,8 +13,8 @@ return new class extends Migration
 
             $table->text('access_token');
             $table->string('token_type');
-            $table->string('scope')->nullable();
-            $table->timestamp('expiry')->nullable();
+            $table->longText('scope')->nullable();
+            $table->unsignedBigInteger('expiry')->nullable();
             $table->text('refresh_token')->nullable();
             $table->text('id_token')->nullable();
         });

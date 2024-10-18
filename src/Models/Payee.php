@@ -2,6 +2,8 @@
 
 namespace SytxLabs\PayPal\Models;
 
+use Illuminate\Support\Str;
+
 class Payee extends \PaypalServerSDKLib\Models\Payee
 {
     public ?string $referenceId;
@@ -11,7 +13,8 @@ class Payee extends \PaypalServerSDKLib\Models\Payee
     {
         $this->setEmailAddress($email);
         $this->setMerchantId($merchantId);
-        $this->referenceId = $referenceId;
+
+        $this->referenceId = Str::snake($referenceId);
         $this->shippingDetail = $shippingDetail;
     }
 }
