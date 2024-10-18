@@ -7,7 +7,7 @@ use SytxLabs\PayPal\Enums\PayPalModeType;
 
 trait PayPalConfig
 {
-    public readonly array $config;
+    public array $config;
     public PayPalModeType $mode = PayPalModeType::Sandbox;
 
     protected string $currency = 'USD';
@@ -24,6 +24,9 @@ trait PayPalConfig
             throw new RuntimeException('Invalid PayPal mode.');
         }
         $this->mode = $mode;
+        if ($mode === PayPalModeType::Sandbox && empty($this->config['app_id'])) {
+            $this->config['app_id'] = 'APP-80W284485P519543T';
+        }
         if (empty($this->config['client_id']) || empty($this->config['client_secret'])) {
             if (empty($this->config[$this->mode->value])) {
                 throw new RuntimeException("{$this->mode->value} configuration missing from the provided configuration.");
