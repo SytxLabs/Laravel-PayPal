@@ -13,15 +13,20 @@ trait PayPalOrderSave
 
     protected function getConnection(): ?Connection
     {
-        if (!app()->bound('db')) {
+        if (!app()->bound('db') || $this->config['database']['enabled'] !== true) {
             return null;
         }
-        return DB::connection($this->config['oauth_database_connection'] ?? null);
+        return DB::connection($this->config['database']['connection'] ?? null);
+    }
+
+    protected function tableName(): string
+    {
+        return $this->config['database']['order_table'] ?? 'sytxlabs_paypal_orders';
     }
 
     protected function tableExists(): bool
     {
-        return $this->getConnection()?->getSchemaBuilder()->hasTable('sytxlabs_paypal_orders') ?? false;
+        return $this->getConnection()?->getSchemaBuilder()->hasTable($this->tableName()) ?? false;
     }
 
     public function saveOrderToDatabase(PayPalOrder $order): Order|PayPalOrder

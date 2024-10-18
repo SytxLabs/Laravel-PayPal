@@ -1,7 +1,6 @@
 <?php
 
 return [
-    'oauth_database_connection' => env('PAYPAL_DB_CONNECTION'), // Database connection to use for storing OAuth tokens or null for default database connection or file storage
     'mode' => env('PAYPAL_MODE', 'sandbox'), // Can only be 'sandbox' Or 'live'. If empty or invalid, 'live' will be used.
     'sandbox' => [
         'client_id' => env('PAYPAL_SANDBOX_CLIENT_ID', ''), // to get your credentials, see https://developer.paypal.com/docs/api/overview/#get-credentials
@@ -28,5 +27,12 @@ return [
         'enabled' => env('PAYPAL_LOGGING_ENABLED', true), // Enable logging
         'channel' => env('PAYPAL_LOGGING_CHANNEL', config('logging.default', 'stack')), // Logging channel to use
         'level' => env('PAYPAL_LOGGING_LEVEL', 'info'), // Logging level
+    ],
+
+    'database' => [
+        'enabled' => env('PAYPAL_DATABASE_ENABLED', true), // Enable database storage for transactions
+        'connection' => env('PAYPAL_DATABASE_CONNECTION'), // Database connection to use for storing transactions
+        'oauth_table' => 'sytxlabs_paypal_oauth_tokens',
+        'order_table' => 'sytxlabs_paypal_orders',
     ],
 ];

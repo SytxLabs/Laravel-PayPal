@@ -13,20 +13,25 @@ trait PayPalOAuthSave
 
     protected function getConnection(): ?Connection
     {
-        if (!app()->bound('db')) {
+        if (!app()->bound('db') || $this->config['database']['enabled'] !== true) {
             return null;
         }
-        return DB::connection($this->config['oauth_database_connection'] ?? null);
+        return DB::connection($this->config['database']['connection'] ?? null);
+    }
+
+    protected function tableName(): string
+    {
+        return $this->config['database']['oauth_table'] ?? 'sytxlabs_paypal_oauth_tokens';
     }
 
     protected function tableExists(): bool
     {
-        return $this->getConnection()?->getSchemaBuilder()->hasTable('sytxlabs_paypal_oauth_tokens') ?? false;
+        return $this->getConnection()?->getSchemaBuilder()->hasTable($this->tableName()) ?? false;
     }
 
     protected function table(): ?Builder
     {
-        return $this->getConnection()?->table('sytxlabs_paypal_oauth_tokens');
+        return $this->getConnection()?->table($this->tableName());
     }
 
     public function saveOAuthToken(OAuthToken $token): void

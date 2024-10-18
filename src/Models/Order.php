@@ -4,6 +4,7 @@ namespace SytxLabs\PayPal\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use PaypalServerSDKLib\Models\Builders\OrderBuilder;
 use PaypalServerSDKLib\Models\Order as PayPalOrder;
 use SytxLabs\PayPal\Facades\PayPal;
@@ -15,12 +16,11 @@ use SytxLabs\PayPal\Facades\PayPal;
  * @property ?string status
  * @property ?array links
  *
- * @property-read PayPalOrder payPalOrder {@see  self::payPalOrder}
+ * @property-read PayPalOrder payPalOrder {@see self::payPalOrder}
+ * @property-read Model orderable {@see self::orderable}
  */
 class Order extends Model
 {
-    protected $table = 'sytxlabs_paypal_orders';
-
     protected $fillable = [
         'order_id',
         'intent',
@@ -33,12 +33,25 @@ class Order extends Model
         'links' => 'array',
     ];
 
+    public function getTable(): string
+    {
+        if (!PayPal::getProvider()) {
+            return 'sytxlabs_paypal_orders';
+        }
+        return PayPal::getProvider()?->config['database']['order_table'] ?? 'sytxlabs_paypal_orders';
+    }
+
     public function getConnectionName(): ?string
     {
         if (!PayPal::getProvider()) {
             return null;
         }
-        return PayPal::getProvider()?->config['oauth_database_connection'] ?? null;
+        return PayPal::getProvider()?->config['database']['connection'] ?? null;
+    }
+
+    public function orderable(): MorphTo
+    {
+        return $this->morphTo('orderable');
     }
 
     public function payPalOrder(): Attribute

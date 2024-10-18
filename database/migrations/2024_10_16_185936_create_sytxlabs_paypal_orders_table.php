@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
 
             $table->text('order_id');
+            $table->nullableUuidMorphs('orderable');
             $table->string('intent')->nullable();
             $table->string('processing_instruction')->nullable();
             $table->string('status')->nullable();
