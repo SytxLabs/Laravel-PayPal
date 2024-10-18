@@ -102,6 +102,13 @@ class PayPalOrder extends PayPal
         return $this;
     }
 
+    public function getGroupedProducts(): Collection
+    {
+        return $this->items->groupBy(
+            static fn (Product $item) => $item->payee?->getEmailAddress() !== null ? $item->payee->getEmailAddress() . '_' . ($item->payee?->getMerchantId() ?? '') : ''
+        );
+    }
+
     /**
      * @throws RuntimeException
      */
@@ -129,7 +136,7 @@ class PayPalOrder extends PayPal
         if ($applicationContext->build()->getCancelUrl() === null && ($this->config['cancel_route'] ?? null) !== null) {
             $applicationContext = $applicationContext->cancelUrl($this->config['cancel_route']);
         }
-        $grouped = $this->items->groupBy(static fn (Product $item) => $item->payee?->getEmailAddress() !== null ? $item->payee->getEmailAddress() . '_' . ($item->payee?->getMerchantId() ?? '') : '');
+        $grouped = $this->getGroupedProducts();
         if ($grouped->count() > 10) {
             throw new RuntimeException('Maximum of 10 payees allowed per order');
         }
