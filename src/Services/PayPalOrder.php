@@ -215,7 +215,7 @@ class PayPalOrder extends PayPal
 
     public function getOrderFormId(string $id): Order
     {
-        $order = $this->loadOrderFromDatabase($id) ?? OrderBuilder::init()->id($id)->build();
+        $order = $this->loadOrderFromDatabase($id)?->payPalOrder ?? OrderBuilder::init()->id($id)->build();
         $this->order = $order;
         return $order;
     }

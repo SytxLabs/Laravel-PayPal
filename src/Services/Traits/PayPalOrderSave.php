@@ -42,11 +42,11 @@ trait PayPalOrderSave
         ]);
     }
 
-    public function loadOrderFromDatabase(string $id): ?PayPalOrder
+    public function loadOrderFromDatabase(string $id): ?Order
     {
         if (!$this->tableExists()) {
             return null;
         }
-        return Order::query()->firstWhere('order_id', $id)?->payPalOrder;
+        return Order::query()->firstWhere('order_id', $id);
     }
 }
