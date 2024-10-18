@@ -123,13 +123,10 @@ class PayPalOrder extends PayPal
         if ($this->items->count() < 1) {
             throw new RuntimeException('No items added to the order');
         }
-        if ($this->items->count() > 10) {
-            throw new RuntimeException('Maximum of 10 items allowed per order');
-        }
-        if (($this->config['success_route'] ?? null) !== null) {
+        if ($applicationContext->build()->getReturnUrl() === null && ($this->config['success_route'] ?? null) !== null) {
             $applicationContext = $applicationContext->returnUrl($this->config['success_route']);
         }
-        if (($this->config['cancel_route'] ?? null) !== null) {
+        if ($applicationContext->build()->getCancelUrl() === null && ($this->config['cancel_route'] ?? null) !== null) {
             $applicationContext = $applicationContext->cancelUrl($this->config['cancel_route']);
         }
         $grouped = $this->items->groupBy(static fn (Product $item) => $item->payee?->getEmailAddress() !== null ? $item->payee->getEmailAddress() . '_' . ($item->payee?->getMerchantId() ?? '') : '');
@@ -138,20 +135,10 @@ class PayPalOrder extends PayPal
         }
         $purchaseUnits = [];
         foreach ($grouped as $sortedItems) {
-            $totalItems = 0;
-            $taxTotals = 0;
-            $shippingTotals = 0;
-            $discountTotals = 0;
-            $shippingDiscountTotals = 0;
-            $currencyCode = $this->currency;
+            $currencyCode = $this->currency ?? $sortedItems->first()?->currencyCode ?? 'USD';
             $items = [];
-            $payee = null;
+            $payee = $sortedItems->first()?->payee;
             foreach ($sortedItems as $item) {
-                $totalItems += $item->totalPrice ?? ($item->unitPrice * $item->quantity);
-                $taxTotals = $item->tax ?? 0;
-                $shippingTotals = $item->shipping ?? 0;
-                $discountTotals = $item->discount ?? 0;
-                $shippingDiscountTotals = $item->shippingDiscount ?? 0;
                 $items[] = ItemBuilder::init($item->name, MoneyBuilder::init($item->currencyCode ?? $this->currency, $item->unitPrice . '')->build(), $item->quantity . '')
                     ->imageUrl($item->imageUrl)
                     ->sku($item->sku)
@@ -161,22 +148,15 @@ class PayPalOrder extends PayPal
                     ->upc($item->upc)
                     ->tax(MoneyBuilder::init($item->currencyCode ?? $this->currency, ($item->tax ?? 0) . '')->build())
                     ->build();
-                if ($item->payee !== null && $payee === null) {
-                    $payee = $item->payee;
-                }
-                if ($item->currencyCode !== null) {
-                    $currencyCode = $item->currencyCode;
-                }
             }
             $purchaseUnits[] = PurchaseUnitRequestBuilder::init(
-                AmountWithBreakdownBuilder::init($currencyCode, ($totalItems + $taxTotals + $shippingTotals) . '')->breakdown(
+                AmountWithBreakdownBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => (($item->totalPrice ?? ($item->unitPrice * $item->quantity)) + $item->tax + $item->shipping) - ($item->shippingDiscount + $item->discount)) . '')->breakdown(
                     AmountBreakdownBuilder::init()
-                        ->itemTotal(MoneyBuilder::init($currencyCode, $totalItems)->build())
-                        ->taxTotal(MoneyBuilder::init($currencyCode, $taxTotals)->build())
-                        ->shipping(MoneyBuilder::init($currencyCode, $shippingTotals)->build())
-                        ->shippingDiscount(MoneyBuilder::init($currencyCode, $shippingDiscountTotals)->build())
-                        ->discount(MoneyBuilder::init($currencyCode, $discountTotals)->build())
-                        ->shippingDiscount(MoneyBuilder::init($currencyCode, $shippingTotals)->build())
+                        ->itemTotal(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->totalPrice ?? ($item->unitPrice * $item->quantity)) . '')->build())
+                        ->taxTotal(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->tax) . '')->build())
+                        ->shipping(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->shipping) . '')->build())
+                        ->shippingDiscount(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->shippingDiscount) . '')->build())
+                        ->discount(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->discount) . '')->build())
                     ->build()
                 )->build()
             )
