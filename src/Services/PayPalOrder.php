@@ -186,7 +186,7 @@ class PayPalOrder extends PayPal
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = $apiResponse->getResult();
-        $this->order->setIntent($this->intent);
+        $this->order->setIntent($this->intent->value);
         $this->saveOrderToDatabase($this->order);
         return $this;
     }
