@@ -5,8 +5,8 @@ namespace SytxLabs\PayPal\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use PaypalServerSDKLib\Models\Builders\OrderBuilder;
-use PaypalServerSDKLib\Models\Order as PayPalOrder;
+use PaypalServerSdkLib\Models\Builders\OrderBuilder;
+use PaypalServerSdkLib\Models\Order as PayPalOrder;
 use SytxLabs\PayPal\Facades\Accessor\PayPalOrderFacadeAccessor;
 use SytxLabs\PayPal\Facades\PayPal;
 

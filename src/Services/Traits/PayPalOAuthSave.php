@@ -5,7 +5,7 @@ namespace SytxLabs\PayPal\Services\Traits;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use PaypalServerSDKLib\Models\OAuthToken;
+use PaypalServerSdkLib\Models\OAuthToken;
 
 trait PayPalOAuthSave
 {

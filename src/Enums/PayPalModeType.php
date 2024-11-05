@@ -2,7 +2,7 @@
 
 namespace SytxLabs\PayPal\Enums;
 
-use PaypalServerSDKLib\Environment;
+use PaypalServerSdkLib\Environment;
 
 enum PayPalModeType: string
 {

@@ -2,7 +2,7 @@
 
 namespace SytxLabs\PayPal\Models;
 
-use PaypalServerSDKLib\Models\UniversalProductCode;
+use PaypalServerSdkLib\Models\UniversalProductCode;
 use SytxLabs\PayPal\Enums\PayPalItemCategory;
 
 class Product
