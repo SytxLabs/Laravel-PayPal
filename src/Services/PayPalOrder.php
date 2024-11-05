@@ -19,13 +19,13 @@ use PaypalServerSDKLib\Models\Builders\PayerBuilder;
 use PaypalServerSDKLib\Models\Builders\PaymentInstructionBuilder;
 use PaypalServerSDKLib\Models\Builders\PaymentSourceBuilder;
 use PaypalServerSDKLib\Models\Builders\PurchaseUnitRequestBuilder;
-use PaypalServerSDKLib\Models\CheckoutPaymentIntent;
 use PaypalServerSDKLib\Models\LinkDescription;
 use PaypalServerSDKLib\Models\Order;
 use PaypalServerSDKLib\Models\Payer;
 use PaypalServerSDKLib\Models\PaymentInstruction;
 use PaypalServerSDKLib\Models\PaymentSource;
 use RuntimeException;
+use SytxLabs\PayPal\Enums\PayPalCheckoutPaymentIntent;
 use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
 use SytxLabs\PayPal\Models\Order as OrderModel;
 use SytxLabs\PayPal\Models\Product;
@@ -36,7 +36,7 @@ class PayPalOrder extends PayPal
     use PayPalOrderSave;
 
     private ?OrdersController $controller = null;
-    private string $intent = CheckoutPaymentIntent::CAPTURE;
+    private PayPalCheckoutPaymentIntent $intent;
     private Collection $items;
     private ?PaymentSource $paymentSource = null;
     private ?OrderApplicationContextBuilder $applicationContext = null;
@@ -48,6 +48,7 @@ class PayPalOrder extends PayPal
 
     public function __construct(array $config = [])
     {
+        $this->intent = PayPalCheckoutPaymentIntent::CAPTURE;
         parent::__construct($config);
         $this->items = new Collection();
     }
@@ -62,12 +63,8 @@ class PayPalOrder extends PayPal
     /**
      * @throws RuntimeException
      */
-    public function setIntent(string $intent): self
+    public function setIntent(PayPalCheckoutPaymentIntent $intent): self
     {
-        $intent = strtoupper($intent);
-        if (!in_array($intent, [CheckoutPaymentIntent::AUTHORIZE, CheckoutPaymentIntent::CAPTURE], true)) {
-            throw new RuntimeException('Invalid intent provided');
-        }
         $this->intent = $intent;
         return $this;
     }
@@ -178,7 +175,7 @@ class PayPalOrder extends PayPal
 
         $this->payPalRequestId ??= $this->generateRequestId();
         $apiResponse = $client->ordersCreate([
-            'body' => OrderRequestBuilder::init($this->intent, $purchaseUnits)
+            'body' => OrderRequestBuilder::init($this->intent->value, $purchaseUnits)
                     ->paymentSource($this->paymentSource)
                     ->applicationContext($applicationContext->build())
                     ->payer($this->payer)
@@ -260,7 +257,7 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
-        if (($this->order->getIntent() ?? $this->intent) !== CheckoutPaymentIntent::AUTHORIZE) {
+        if (($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value) {
             $apiResponse = $client->ordersCapture([
                 'id' => $this->order->getId(),
                 'payPalRequestId' => $this->payPalRequestId,

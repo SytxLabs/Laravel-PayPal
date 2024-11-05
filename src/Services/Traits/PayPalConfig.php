@@ -8,12 +8,13 @@ use SytxLabs\PayPal\Enums\PayPalModeType;
 trait PayPalConfig
 {
     public array $config;
-    public PayPalModeType $mode = PayPalModeType::Sandbox;
+    public PayPalModeType $mode;
 
     protected string $currency = 'USD';
 
     public function __construct(array $config = [])
     {
+        $this->mode = PayPalModeType::Sandbox;
         $configFile = function_exists('config') && app()->bound('config') ? config('paypal') : [];
         $this->config = array_replace_recursive($configFile, $config);
         if (empty($this->config)) {
