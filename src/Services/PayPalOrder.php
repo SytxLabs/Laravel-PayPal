@@ -46,6 +46,10 @@ class PayPalOrder extends PayPal
     private ?string $payPalRequestId = null;
     private ?Order $order = null;
 
+    private ?float $shippingPrice = null;
+    private ?float $shippingTaxPrice = null;
+    private ?float $shippingDiscount = null;
+
     public function __construct(array $config = [])
     {
         $this->intent = PayPalCheckoutPaymentIntent::CAPTURE;
@@ -96,6 +100,24 @@ class PayPalOrder extends PayPal
     public function setPlatformFee(?PaymentInstructionBuilder $platformInstruction): self
     {
         $this->platformInstruction = $platformInstruction?->build();
+        return $this;
+    }
+
+    public function setShippingPrice(?float $price): self
+    {
+        $this->shippingPrice = $price;
+        return $this;
+    }
+
+    public function setShippingTaxPrice(?float $price): self
+    {
+        $this->shippingTaxPrice = $price;
+        return $this;
+    }
+
+    public function setShippingDiscount(?float $discount): self
+    {
+        $this->shippingDiscount = $discount;
         return $this;
     }
 
@@ -158,9 +180,9 @@ class PayPalOrder extends PayPal
                 AmountWithBreakdownBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => (($item->totalPrice ?? ($item->unitPrice * $item->quantity)) + $item->tax + $item->shipping) - ($item->shippingDiscount + $item->discount)) . '')->breakdown(
                     AmountBreakdownBuilder::init()
                         ->itemTotal(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->totalPrice ?? ($item->unitPrice * $item->quantity)) . '')->build())
-                        ->taxTotal(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->tax) . '')->build())
-                        ->shipping(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->shipping) . '')->build())
-                        ->shippingDiscount(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->shippingDiscount) . '')->build())
+                        ->taxTotal(MoneyBuilder::init($currencyCode, (($this->shippingTaxPrice ?? 0.0) + $sortedItems->sum(static fn (Product $item) => $item->tax)) . '')->build())
+                        ->shipping(MoneyBuilder::init($currencyCode, ($this->shippingPrice ?? $sortedItems->sum(static fn (Product $item) => $item->shipping)) . '')->build())
+                        ->shippingDiscount(MoneyBuilder::init($currencyCode, ($this->shippingDiscount ?? $sortedItems->sum(static fn (Product $item) => $item->shippingDiscount)) . '')->build())
                         ->discount(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->discount) . '')->build())
                     ->build()
                 )->build()
