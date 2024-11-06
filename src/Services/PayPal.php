@@ -8,8 +8,8 @@ use PaypalServerSdkLib\Logging\LoggingConfigurationBuilder;
 use PaypalServerSdkLib\Logging\RequestLoggingConfigurationBuilder;
 use PaypalServerSdkLib\Logging\ResponseLoggingConfigurationBuilder;
 use PaypalServerSdkLib\Models\OAuthToken;
-use PaypalServerSdkLib\PaypalServerSDKClient;
-use PaypalServerSdkLib\PaypalServerSDKClientBuilder;
+use PaypalServerSdkLib\PaypalServerSdkClient;
+use PaypalServerSdkLib\PaypalServerSdkClientBuilder;
 use Psr\Log\LogLevel;
 use SytxLabs\PayPal\Services\Traits\PayPalConfig;
 use SytxLabs\PayPal\Services\Traits\PayPalOAuthSave;
@@ -19,7 +19,7 @@ class PayPal
     use PayPalConfig;
     use PayPalOAuthSave;
 
-    private ?PaypalServerSDKClient $client = null;
+    private ?PaypalServerSdkClient $client = null;
 
     public function build(): self
     {
@@ -33,7 +33,7 @@ class PayPal
                     ->responseConfiguration(ResponseLoggingConfigurationBuilder::init()->headers(true));
         }
 
-        $client = PaypalServerSDKClientBuilder::init()
+        $client = PaypalServerSdkClientBuilder::init()
             ->clientCredentialsAuthCredentials(
                 ClientCredentialsAuthCredentialsBuilder::init(
                     $this->config['client_id'],
@@ -62,7 +62,7 @@ class PayPal
         return $this;
     }
 
-    public function getClient(): ?PaypalServerSDKClient
+    public function getClient(): ?PaypalServerSdkClient
     {
         return $this->client;
     }
