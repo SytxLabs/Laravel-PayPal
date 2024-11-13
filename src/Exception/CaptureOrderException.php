@@ -14,4 +14,16 @@ class CaptureOrderException extends Exception
         $this->response = $response;
         parent::__construct($message);
     }
+
+
+    public function getResponse(): array
+    {
+        return [
+            'status' => $this->response->getStatusCode(),
+            'body' => $this->response->getBody(),
+            'headers' => $this->response->getHeaders(),
+            'reason' => $this->response->getReasonPhrase(),
+            'result' => $this->response->getResult(),
+        ];
+    }
 }
