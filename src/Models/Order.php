@@ -3,6 +3,7 @@
 namespace SytxLabs\PayPal\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
 use Illuminate\Database\Eloquent\Model;
@@ -62,6 +63,12 @@ class Order extends Model
     public function orderable(): MorphTo
     {
         return $this->morphTo('orderable');
+    }
+
+    public function scopeOrderable(Builder $query, Model $model): Builder
+    {
+        return $query->where('orderable_type', $model->getMorphClass())
+            ->where('orderable_id', $model->getKey());
     }
 
     public function payPalOrder(): Attribute
