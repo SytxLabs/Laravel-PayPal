@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use PaypalServerSdkLib\Models\Builders\OrderBuilder;
-use PaypalServerSdkLib\Models\Order as PayPalOrder;
+use PaypalServerSDKLib\Models\Builders\OrderBuilder;
+use PaypalServerSDKLib\Models\Order as PayPalOrder;
 use SytxLabs\PayPal\Facades\Accessor\PayPalOrderFacadeAccessor;
 use SytxLabs\PayPal\Facades\PayPal;
 

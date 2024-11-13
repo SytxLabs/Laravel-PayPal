@@ -5,7 +5,7 @@ namespace SytxLabs\PayPal\Services\Traits;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use PaypalServerSdkLib\Models\OAuthToken;
+use PaypalServerSDKLib\Models\OAuthToken;
 
 trait PayPalOAuthSave
 {
@@ -13,7 +13,7 @@ trait PayPalOAuthSave
 
     protected function getConnection(): ?Connection
     {
-        if ($this->config['database']['enabled'] !== true || !app()->bound('db')) {
+        if (($this->config['database']['enabled'] ?? false) !== true || !app()->bound('db')) {
             return null;
         }
         return DB::connection($this->config['database']['connection'] ?? null);

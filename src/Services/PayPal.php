@@ -2,14 +2,14 @@
 
 namespace SytxLabs\PayPal\Services;
 
-use PaypalServerSdkLib\Authentication\ClientCredentialsAuthCredentialsBuilder;
-use PaypalServerSdkLib\Authentication\ClientCredentialsAuthManager;
-use PaypalServerSdkLib\Logging\LoggingConfigurationBuilder;
-use PaypalServerSdkLib\Logging\RequestLoggingConfigurationBuilder;
-use PaypalServerSdkLib\Logging\ResponseLoggingConfigurationBuilder;
-use PaypalServerSdkLib\Models\OAuthToken;
-use PaypalServerSdkLib\PaypalServerSdkClient;
-use PaypalServerSdkLib\PaypalServerSdkClientBuilder;
+use PaypalServerSDKLib\Authentication\ClientCredentialsAuthCredentialsBuilder;
+use PaypalServerSDKLib\Authentication\ClientCredentialsAuthManager;
+use PaypalServerSDKLib\Logging\LoggingConfigurationBuilder;
+use PaypalServerSDKLib\Logging\RequestLoggingConfigurationBuilder;
+use PaypalServerSDKLib\Logging\ResponseLoggingConfigurationBuilder;
+use PaypalServerSDKLib\Models\OAuthToken;
+use PaypalServerSDKLib\PaypalServerSdkClient;
+use PaypalServerSDKLib\PaypalServerSdkClientBuilder;
 use Psr\Log\LogLevel;
 use SytxLabs\PayPal\Services\Traits\PayPalConfig;
 use SytxLabs\PayPal\Services\Traits\PayPalOAuthSave;

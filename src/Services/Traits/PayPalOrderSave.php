@@ -4,7 +4,7 @@ namespace SytxLabs\PayPal\Services\Traits;
 
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
-use PaypalServerSdkLib\Models\Order as PayPalOrder;
+use PaypalServerSDKLib\Models\Order as PayPalOrder;
 use SytxLabs\PayPal\Models\Order;
 
 trait PayPalOrderSave
@@ -13,7 +13,7 @@ trait PayPalOrderSave
 
     protected function getConnection(): ?Connection
     {
-        if ($this->config['database']['enabled'] !== true || !app()->bound('db')) {
+        if (($this->config['database']['enabled'] ?? false) !== true || !app()->bound('db')) {
             return null;
         }
         return DB::connection($this->config['database']['connection'] ?? null);
