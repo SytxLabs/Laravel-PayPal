@@ -209,7 +209,7 @@ class PayPalOrder extends PayPal
         return $this;
     }
 
-    public function getOrder(): Order
+    public function getOrder(): ?Order
     {
         return $this->order;
     }
