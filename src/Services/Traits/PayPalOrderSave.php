@@ -13,7 +13,7 @@ trait PayPalOrderSave
 
     protected function getConnection(): ?Connection
     {
-        if (!app()->bound('db') || $this->config['database']['enabled'] !== true) {
+        if ($this->config['database']['enabled'] !== true || !app()->bound('db')) {
             return null;
         }
         return DB::connection($this->config['database']['connection'] ?? null);
@@ -29,6 +29,11 @@ trait PayPalOrderSave
         return $this->getConnection()?->getSchemaBuilder()->hasTable($this->orderTableName()) ?? false;
     }
 
+    protected function orderTableRequestIdExists(): bool
+    {
+        return $this->getConnection()?->getSchemaBuilder()->hasColumn($this->orderTableName(), 'request_id') ?? false;
+    }
+
     public function saveOrderToDatabase(PayPalOrder $order, ?string $requestId = null): Order|PayPalOrder
     {
         if (!$this->orderTableExists()) {
@@ -41,7 +46,7 @@ trait PayPalOrderSave
             'status' => $order->getStatus(),
             'links' => $order->getLinks(),
         ];
-        if ($requestId !== null) {
+        if ($requestId !== null && $this->orderTableRequestIdExists()) {
             $data['request_id'] = $requestId;
         }
         return Order::query()->updateOrCreate(['order_id' => $order->getId()], $data);

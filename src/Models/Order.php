@@ -65,6 +65,7 @@ class Order extends Model
         return $this->morphTo('orderable');
     }
 
+    /** @noinspection PhpUnused */
     public function scopeOrderable(Builder $query, Model $model): Builder
     {
         return $query->where('orderable_type', $model->getMorphClass())

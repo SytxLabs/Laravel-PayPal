@@ -1,5 +1,7 @@
 <?php
 
+/** @noinspection PhpUnused */
+
 namespace SytxLabs\PayPal\Services;
 
 use Illuminate\Http\RedirectResponse;
@@ -129,10 +131,10 @@ class PayPalOrder extends PayPal
         if ($this->items->count() < 1) {
             throw new RuntimeException('No items added to the order');
         }
-        if ($applicationContext->build()->getReturnUrl() === null && ($this->config['success_route'] ?? null) !== null) {
+        if (($this->config['success_route'] ?? null) !== null && $applicationContext->build()->getReturnUrl() === null) {
             $applicationContext = $applicationContext->returnUrl($this->config['success_route']);
         }
-        if ($applicationContext->build()->getCancelUrl() === null && ($this->config['cancel_route'] ?? null) !== null) {
+        if (($this->config['cancel_route'] ?? null) !== null && $applicationContext->build()->getCancelUrl() === null) {
             $applicationContext = $applicationContext->cancelUrl($this->config['cancel_route']);
         }
         $grouped = $this->getGroupedProducts();

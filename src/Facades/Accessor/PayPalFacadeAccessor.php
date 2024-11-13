@@ -13,9 +13,9 @@ class PayPalFacadeAccessor
         return self::$provider;
     }
 
-    public static function setProvider(array $config = []): ?PayPalClient
+    public static function setProvider(array $config = []): PayPalClient
     {
         self::$provider = new PayPalClient($config);
-        return self::getProvider();
+        return self::$provider;
     }
 }

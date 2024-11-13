@@ -13,7 +13,7 @@ trait PayPalOAuthSave
 
     protected function getConnection(): ?Connection
     {
-        if (!app()->bound('db') || $this->config['database']['enabled'] !== true) {
+        if ($this->config['database']['enabled'] !== true || !app()->bound('db')) {
             return null;
         }
         return DB::connection($this->config['database']['connection'] ?? null);

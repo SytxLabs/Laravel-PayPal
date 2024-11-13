@@ -13,9 +13,9 @@ class PayPalOrderFacadeAccessor
         return self::$provider;
     }
 
-    public static function setProvider(array $config = []): ?PayPalOrderClient
+    public static function setProvider(array $config = []): PayPalOrderClient
     {
         self::$provider = new PayPalOrderClient($config);
-        return self::getProvider();
+        return self::$provider;
     }
 }
