@@ -29,17 +29,22 @@ trait PayPalOrderSave
         return $this->getConnection()?->getSchemaBuilder()->hasTable($this->orderTableName()) ?? false;
     }
 
-    public function saveOrderToDatabase(PayPalOrder $order): Order|PayPalOrder
+    public function saveOrderToDatabase(PayPalOrder $order, ?string $requestId = null): Order|PayPalOrder
     {
         if (!$this->orderTableExists()) {
             return $order;
         }
-        return Order::query()->updateOrCreate(['order_id' => $order->getId()], [
+        $data = [
+            'order_id' => $order->getId(),
             'intent' => $order->getIntent(),
             'processing_instruction' => $order->getProcessingInstruction(),
             'status' => $order->getStatus(),
             'links' => $order->getLinks(),
-        ]);
+        ];
+        if ($requestId !== null) {
+            $data['request_id'] = $requestId;
+        }
+        return Order::query()->updateOrCreate(['order_id' => $order->getId()], $data);
     }
 
     public function loadOrderFromDatabase(string $id): ?Order

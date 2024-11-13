@@ -2,7 +2,9 @@
 
 namespace SytxLabs\PayPal\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use PaypalServerSdkLib\Models\Builders\OrderBuilder;
@@ -16,18 +18,25 @@ use SytxLabs\PayPal\Facades\PayPal;
  * @property ?string $processing_instruction
  * @property ?string $status
  * @property ?array $links
+ * @property ?string $request_id
+ *
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  *
  * @property-read PayPalOrder $payPalOrder {@see self::payPalOrder}
  * @property-read Model $orderable {@see self::orderable}
  */
 class Order extends Model
 {
+    use HasTimestamps;
+
     protected $fillable = [
         'order_id',
         'intent',
         'processing_instruction',
         'status',
         'links',
+        'request_id',
     ];
 
     protected $casts = [
@@ -64,6 +73,8 @@ class Order extends Model
             ->processingInstruction($this->processing_instruction)
             ->status($this->status)
             ->links($this->links)
+            ->createTime($this->created_at->format('c'))
+            ->updateTime($this->updated_at->format('c'))
             ->build(),
             function (PayPalOrder $order) {
                 $this->order_id = $order->getId();

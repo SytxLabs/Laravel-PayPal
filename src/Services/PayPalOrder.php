@@ -27,6 +27,8 @@ use PaypalServerSdkLib\Models\PaymentSource;
 use RuntimeException;
 use SytxLabs\PayPal\Enums\PayPalCheckoutPaymentIntent;
 use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
+use SytxLabs\PayPal\Exception\CaptureOrderException;
+use SytxLabs\PayPal\Exception\CreateOrderException;
 use SytxLabs\PayPal\Models\Order as OrderModel;
 use SytxLabs\PayPal\Models\Product;
 use SytxLabs\PayPal\Services\Traits\PayPalOrderSave;
@@ -107,7 +109,7 @@ class PayPalOrder extends PayPal
     }
 
     /**
-     * @throws RuntimeException
+     * @throws RuntimeException|CreateOrderException
      */
     public function createOrder(): self
     {
@@ -183,23 +185,25 @@ class PayPalOrder extends PayPal
             'payPalRequestId' => $this->payPalRequestId,
         ]);
         if ($apiResponse->isError() || !($apiResponse->getResult() instanceof Order)) {
-            throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
+            throw new CreateOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
         $this->order = $apiResponse->getResult();
         $this->order->setIntent($this->intent->value);
-        $this->saveOrderToDatabase($this->order);
+        $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }
 
     private function generateRequestId(): string
     {
-        return md5(uniqid('paypal', true));
+        // min: 1, max: 100
+        return substr(md5(uniqid('paypal', true)), 0, 100);
     }
 
     public function setOrder(Order|OrderModel $order): self
     {
         if ($order instanceof OrderModel) {
             $order = $order->payPalOrder;
+            $this->payPalRequestId = $order->request_id;
         }
         $this->order = $order;
         return $this;
@@ -212,9 +216,14 @@ class PayPalOrder extends PayPal
 
     public function getOrderFormId(string $id): Order
     {
-        $order = $this->loadOrderFromDatabase($id)?->payPalOrder ?? OrderBuilder::init()->id($id)->build();
-        $this->order = $order;
-        return $order;
+        $dbOrder = $this->loadOrderFromDatabase($id);
+        if ($dbOrder !== null) {
+            $this->order = $dbOrder->payPalOrder;
+            $this->payPalRequestId = $dbOrder->request_id;
+            return $this->order;
+        }
+        $this->order = OrderBuilder::init()->id($id)->build();
+        return $this->order;
     }
 
     /**
@@ -248,6 +257,9 @@ class PayPalOrder extends PayPal
         return $approveLink->getHref();
     }
 
+    /**
+     * @throws CaptureOrderException|RuntimeException
+     */
     public function captureOrder(): self
     {
         $client = $this->controller ?? $this->build()->controller;
@@ -257,22 +269,18 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
-        if (($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value) {
-            $apiResponse = $client->ordersCapture([
-                'id' => $this->order->getId(),
-                'payPalRequestId' => $this->payPalRequestId,
-            ]);
-        } else {
-            $apiResponse = $client->ordersAuthorize([
-                'id' => $this->order->getId(),
-                'payPalRequestId' => $this->payPalRequestId,
-            ]);
-        }
+        $data = [
+            'id' => $this->order->getId(),
+            'payPalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
+        ];
+        $apiResponse = ($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value ?
+            $client->ordersCapture($data) :
+            $client->ordersAuthorize($data);
         if ($apiResponse->isError()) {
-            throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
+            throw new CaptureOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
         $this->order = $apiResponse->getResult();
-        $this->saveOrderToDatabase($this->order);
+        $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }
 
@@ -304,7 +312,7 @@ class PayPalOrder extends PayPal
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = $apiResponse->getResult();
-        $this->saveOrderToDatabase($this->order);
+        $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }
 }
