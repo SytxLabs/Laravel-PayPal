@@ -202,8 +202,8 @@ class PayPalOrder extends PayPal
     public function setOrder(Order|OrderModel $order): self
     {
         if ($order instanceof OrderModel) {
-            $order = $order->payPalOrder;
             $this->payPalRequestId = $order->request_id;
+            $order = $order->payPalOrder;
         }
         $this->order = $order;
         return $this;
