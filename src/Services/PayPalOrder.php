@@ -9,27 +9,27 @@ use Illuminate\Routing\ResponseFactory;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use PaypalServerSDKLib\Controllers\OrdersController;
-use PaypalServerSDKLib\Models\Builders\AmountBreakdownBuilder;
-use PaypalServerSDKLib\Models\Builders\AmountWithBreakdownBuilder;
-use PaypalServerSDKLib\Models\Builders\ItemBuilder;
-use PaypalServerSDKLib\Models\Builders\MoneyBuilder;
-use PaypalServerSDKLib\Models\Builders\OrderApplicationContextBuilder;
-use PaypalServerSDKLib\Models\Builders\OrderAuthorizeRequestBuilder;
-use PaypalServerSDKLib\Models\Builders\OrderBuilder;
-use PaypalServerSDKLib\Models\Builders\OrderCaptureRequestBuilder;
-use PaypalServerSDKLib\Models\Builders\OrderRequestBuilder;
-use PaypalServerSDKLib\Models\Builders\OrderTrackerRequestBuilder;
-use PaypalServerSDKLib\Models\Builders\PayerBuilder;
-use PaypalServerSDKLib\Models\Builders\PaymentInstructionBuilder;
-use PaypalServerSDKLib\Models\Builders\PaymentSourceBuilder;
-use PaypalServerSDKLib\Models\Builders\PurchaseUnitRequestBuilder;
-use PaypalServerSDKLib\Models\LinkDescription;
-use PaypalServerSDKLib\Models\Order;
-use PaypalServerSDKLib\Models\OrderCaptureRequest;
-use PaypalServerSDKLib\Models\Payer;
-use PaypalServerSDKLib\Models\PaymentInstruction;
-use PaypalServerSDKLib\Models\PaymentSource;
+use PaypalServerSdkLib\Controllers\OrdersController;
+use PaypalServerSdkLib\Models\Builders\AmountBreakdownBuilder;
+use PaypalServerSdkLib\Models\Builders\AmountWithBreakdownBuilder;
+use PaypalServerSdkLib\Models\Builders\ItemBuilder;
+use PaypalServerSdkLib\Models\Builders\MoneyBuilder;
+use PaypalServerSdkLib\Models\Builders\OrderApplicationContextBuilder;
+use PaypalServerSdkLib\Models\Builders\OrderAuthorizeRequestBuilder;
+use PaypalServerSdkLib\Models\Builders\OrderBuilder;
+use PaypalServerSdkLib\Models\Builders\OrderCaptureRequestBuilder;
+use PaypalServerSdkLib\Models\Builders\OrderRequestBuilder;
+use PaypalServerSdkLib\Models\Builders\OrderTrackerRequestBuilder;
+use PaypalServerSdkLib\Models\Builders\PayerBuilder;
+use PaypalServerSdkLib\Models\Builders\PaymentInstructionBuilder;
+use PaypalServerSdkLib\Models\Builders\PaymentSourceBuilder;
+use PaypalServerSdkLib\Models\Builders\PurchaseUnitRequestBuilder;
+use PaypalServerSdkLib\Models\LinkDescription;
+use PaypalServerSdkLib\Models\Order;
+use PaypalServerSdkLib\Models\OrderCaptureRequest;
+use PaypalServerSdkLib\Models\Payer;
+use PaypalServerSdkLib\Models\PaymentInstruction;
+use PaypalServerSdkLib\Models\PaymentSource;
 use RuntimeException;
 use SytxLabs\PayPal\Enums\PayPalCheckoutPaymentIntent;
 use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
@@ -296,7 +296,7 @@ class PayPalOrder extends PayPal
                 'request_id' => $this->payPalRequestId,
                 'order' => $this->order,
                 'intent' => $this->intent,
-                'apiRequest' => $apiResponse->getRequest()->getQueryUrl()
+                'apiRequest' => $apiResponse->getRequest()
             ]);
             throw new CaptureOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }

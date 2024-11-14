@@ -20,7 +20,7 @@ composer require sytxlabs/laravel-paypal
 ```
 
 ## Using
-- [PayPal SDK](https://developer.paypal.com/serversdk/php/getting-started/how-to-get-started)
+- [PayPal Sdk](https://developer.paypal.com/serversdk/php/getting-started/how-to-get-started)
 - [PayPal API Reference](https://developer.paypal.com/docs/api/overview/)
 - [PayPal Account](https://developer.paypal.com/docs/api-basics/sandbox/accounts/)
 

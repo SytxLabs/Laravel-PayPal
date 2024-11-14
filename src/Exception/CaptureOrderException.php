@@ -3,7 +3,7 @@
 namespace SytxLabs\PayPal\Exception;
 
 use Exception;
-use PaypalServerSDKLib\Http\ApiResponse;
+use PaypalServerSdkLib\Http\ApiResponse;
 
 class CaptureOrderException extends Exception
 {

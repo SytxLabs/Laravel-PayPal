@@ -5,7 +5,7 @@ namespace SytxLabs\PayPal\Models;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
-class Payee extends \PaypalServerSDKLib\Models\Payee
+class Payee extends \PaypalServerSdkLib\Models\Payee
 {
     public ?string $referenceId;
     public ?PayeeShippingDetail $shippingDetail;

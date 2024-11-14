@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "86f8b49030a0cfe62aa02a5cd4155720",
+    "content-hash": "2cf3c9216a0761cb24f2c675241e9301",
     "packages": [
         {
             "name": "apimatic/core",
@@ -46,7 +46,7 @@
             "license": [
                 "MIT"
             ],
-            "description": "Core logic and the utilities for the Apimatic's PHP SDK",
+            "description": "Core logic and the utilities for the Apimatic's PHP Sdk",
             "homepage": "https://github.com/apimatic/core-lib-php",
             "keywords": [
                 "apimatic",
@@ -87,7 +87,7 @@
             "license": [
                 "MIT"
             ],
-            "description": "Definition of the behavior of apimatic/core, apimatic/unirest-php and Apimatic's PHP SDK",
+            "description": "Definition of the behavior of apimatic/core, apimatic/unirest-php and Apimatic's PHP Sdk",
             "homepage": "https://github.com/apimatic/core-interfaces-php",
             "keywords": [
                 "apimatic",
@@ -2421,16 +2421,16 @@
         },
         {
             "name": "paypal/paypal-server-sdk",
-            "version": "0.5.2",
+            "version": "0.6.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/paypal/PayPal-PHP-Server-SDK.git",
-                "reference": "97229fd17c5900c9e8e9716788cc877e392ef2a1"
+                "url": "https://github.com/paypal/PayPal-PHP-Server-Sdk.git",
+                "reference": "7d69e118998fdf2ae2cf234f1bd49f4248782380"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/paypal/PayPal-PHP-Server-SDK/zipball/97229fd17c5900c9e8e9716788cc877e392ef2a1",
-                "reference": "97229fd17c5900c9e8e9716788cc877e392ef2a1",
+                "url": "https://api.github.com/repos/paypal/PayPal-PHP-Server-Sdk/zipball/7d69e118998fdf2ae2cf234f1bd49f4248782380",
+                "reference": "7d69e118998fdf2ae2cf234f1bd49f4248782380",
                 "shasum": ""
             },
             "require": {
@@ -2447,20 +2447,20 @@
             "type": "library",
             "autoload": {
                 "psr-4": {
-                    "PaypalServerSDKLib\\": "src/"
+                    "PaypalServerSdkLib\\": "src/"
                 }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
-            "description": "PayPal's SDK for interacting with the REST APIs",
-            "homepage": "https://github.com/paypal/PayPal-PHP-Server-SDK",
+            "description": "PayPal's Sdk for interacting with the REST APIs",
+            "homepage": "https://github.com/paypal/PayPal-PHP-Server-Sdk",
             "support": {
-                "issues": "https://github.com/paypal/PayPal-PHP-Server-SDK/issues",
-                "source": "https://github.com/paypal/PayPal-PHP-Server-SDK/tree/0.5.2"
+                "issues": "https://github.com/paypal/PayPal-PHP-Server-Sdk/issues",
+                "source": "https://github.com/paypal/PayPal-PHP-Server-Sdk/tree/0.6.0"
             },
-            "time": "2024-10-01T14:47:18+00:00"
+            "time": "2024-10-18T19:06:27+00:00"
         },
         {
             "name": "php-jsonpointer/php-jsonpointer",

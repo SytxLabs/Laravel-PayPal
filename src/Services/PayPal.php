@@ -2,14 +2,14 @@
 
 namespace SytxLabs\PayPal\Services;
 
-use PaypalServerSDKLib\Authentication\ClientCredentialsAuthCredentialsBuilder;
-use PaypalServerSDKLib\Authentication\ClientCredentialsAuthManager;
-use PaypalServerSDKLib\Logging\LoggingConfigurationBuilder;
-use PaypalServerSDKLib\Logging\RequestLoggingConfigurationBuilder;
-use PaypalServerSDKLib\Logging\ResponseLoggingConfigurationBuilder;
-use PaypalServerSDKLib\Models\OAuthToken;
-use PaypalServerSDKLib\PaypalServerSDKClient;
-use PaypalServerSDKLib\PaypalServerSDKClientBuilder;
+use PaypalServerSdkLib\Authentication\ClientCredentialsAuthCredentialsBuilder;
+use PaypalServerSdkLib\Authentication\ClientCredentialsAuthManager;
+use PaypalServerSdkLib\Logging\LoggingConfigurationBuilder;
+use PaypalServerSdkLib\Logging\RequestLoggingConfigurationBuilder;
+use PaypalServerSdkLib\Logging\ResponseLoggingConfigurationBuilder;
+use PaypalServerSdkLib\Models\OAuthToken;
+use PaypalServerSdkLib\PaypalServerSdkClient;
+use PaypalServerSdkLib\PaypalServerSdkClientBuilder;
 use Psr\Log\LogLevel;
 use SytxLabs\PayPal\Services\Traits\PayPalConfig;
 use SytxLabs\PayPal\Services\Traits\PayPalOAuthSave;
@@ -19,7 +19,7 @@ class PayPal
     use PayPalConfig;
     use PayPalOAuthSave;
 
-    private ?PaypalServerSDKClient $client = null;
+    private ?PaypalServerSdkClient $client = null;
 
     public function build(): self
     {
@@ -33,7 +33,7 @@ class PayPal
                     ->responseConfiguration(ResponseLoggingConfigurationBuilder::init()->headers(true));
         }
 
-        $client = PaypalServerSDKClientBuilder::init()
+        $client = PaypalServerSdkClientBuilder::init()
             ->clientCredentialsAuthCredentials(
                 ClientCredentialsAuthCredentialsBuilder::init(
                     $this->config['client_id'],
@@ -62,7 +62,7 @@ class PayPal
         return $this;
     }
 
-    public function getClient(): ?PaypalServerSDKClient
+    public function getClient(): ?PaypalServerSdkClient
     {
         return $this->client;
     }
