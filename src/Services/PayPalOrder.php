@@ -24,7 +24,6 @@ use PaypalServerSdkLib\Models\Builders\OrderTrackerRequestBuilder;
 use PaypalServerSdkLib\Models\Builders\PayerBuilder;
 use PaypalServerSdkLib\Models\Builders\PaymentInstructionBuilder;
 use PaypalServerSdkLib\Models\Builders\PaymentSourceBuilder;
-use PaypalServerSdkLib\Models\Builders\PaypalWalletBuilder;
 use PaypalServerSdkLib\Models\Builders\PhoneWithTypeBuilder;
 use PaypalServerSdkLib\Models\Builders\PurchaseUnitRequestBuilder;
 use PaypalServerSdkLib\Models\LinkDescription;
@@ -34,7 +33,6 @@ use PaypalServerSdkLib\Models\PaymentInstruction;
 use PaypalServerSdkLib\Models\PaymentSource;
 use PaypalServerSdkLib\Models\PaypalWallet;
 use PaypalServerSdkLib\Models\PaypalWalletResponse;
-use PaypalServerSdkLib\Models\PhoneWithType;
 use RuntimeException;
 use SytxLabs\PayPal\Enums\PayPalCheckoutPaymentIntent;
 use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
@@ -319,7 +317,6 @@ class PayPalOrder extends PayPal
                 ->processingInstruction($this->order->getProcessingInstruction())
                 ->build(),
         ]);
-        dd($apiResponse);
         if ($apiResponse->isError()) {
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
@@ -357,7 +354,6 @@ class PayPalOrder extends PayPal
             throw new RuntimeException('Order not found');
         }
         $this->getOrderFromPayPal();
-        $this->confirmOrder();
 
         $data = [
             'id' => $this->order->getId(),
