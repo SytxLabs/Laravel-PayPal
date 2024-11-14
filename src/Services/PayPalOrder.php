@@ -351,6 +351,7 @@ class PayPalOrder extends PayPal
             throw new RuntimeException('Order not found');
         }
         $order = $this->getOrderFromPayPal();
+        $this->confirmOrder();
 
         dd(Order)
         $data = [
