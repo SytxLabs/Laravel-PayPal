@@ -27,7 +27,6 @@ use PaypalServerSdkLib\Models\Builders\PaymentSourceBuilder;
 use PaypalServerSdkLib\Models\Builders\PurchaseUnitRequestBuilder;
 use PaypalServerSdkLib\Models\LinkDescription;
 use PaypalServerSdkLib\Models\Order;
-use PaypalServerSdkLib\Models\OrderCaptureRequest;
 use PaypalServerSdkLib\Models\Payer;
 use PaypalServerSdkLib\Models\PaymentInstruction;
 use PaypalServerSdkLib\Models\PaymentSource;
@@ -327,7 +326,7 @@ class PayPalOrder extends PayPal
             'body' => ConfirmOrderRequestBuilder::init($paymentSource)
                 ->applicationContext($applicationContext)
                 ->processingInstruction($this->order->getProcessingInstruction())
-                ->build()
+                ->build(),
         ]);
         dd($apiResponse);
         if ($apiResponse->isError()) {
@@ -350,20 +349,19 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
-        $order = $this->getOrderFromPayPal();
+        $this->getOrderFromPayPal();
         $this->confirmOrder();
 
-        dd(Order)
         $data = [
             'id' => $this->order->getId(),
-            //'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
+            // 'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
         ];
 
-//        if (($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value) {
-//            $data['body'] = OrderCaptureRequestBuilder::init()->build();
-//        } else {
-//            $data['body'] = OrderAuthorizeRequestBuilder::init()->build();
-//        }
+        //        if (($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value) {
+        //            $data['body'] = OrderCaptureRequestBuilder::init()->build();
+        //        } else {
+        //            $data['body'] = OrderAuthorizeRequestBuilder::init()->build();
+        //        }
 
         $apiResponse = ($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value ?
             $client->ordersCapture($data) :
@@ -375,7 +373,7 @@ class PayPalOrder extends PayPal
                 'request_id' => $this->payPalRequestId,
                 'order' => $this->order,
                 'intent' => $this->intent,
-                'apiRequest' => $apiResponse->getRequest()
+                'apiRequest' => $apiResponse->getRequest(),
             ]);
             throw new CaptureOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
