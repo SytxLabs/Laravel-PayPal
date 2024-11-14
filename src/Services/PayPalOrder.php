@@ -25,6 +25,7 @@ use PaypalServerSdkLib\Models\Builders\PayerBuilder;
 use PaypalServerSdkLib\Models\Builders\PaymentInstructionBuilder;
 use PaypalServerSdkLib\Models\Builders\PaymentSourceBuilder;
 use PaypalServerSdkLib\Models\Builders\PaypalWalletBuilder;
+use PaypalServerSdkLib\Models\Builders\PhoneWithTypeBuilder;
 use PaypalServerSdkLib\Models\Builders\PurchaseUnitRequestBuilder;
 use PaypalServerSdkLib\Models\LinkDescription;
 use PaypalServerSdkLib\Models\Order;
@@ -32,6 +33,8 @@ use PaypalServerSdkLib\Models\Payer;
 use PaypalServerSdkLib\Models\PaymentInstruction;
 use PaypalServerSdkLib\Models\PaymentSource;
 use PaypalServerSdkLib\Models\PaypalWallet;
+use PaypalServerSdkLib\Models\PaypalWalletResponse;
+use PaypalServerSdkLib\Models\PhoneWithType;
 use RuntimeException;
 use SytxLabs\PayPal\Enums\PayPalCheckoutPaymentIntent;
 use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
@@ -301,7 +304,7 @@ class PayPalOrder extends PayPal
             throw new RuntimeException('Payment source not found');
         }
         $paymentSource = PaymentSourceBuilder::init()
-            ->paypal((PaypalWallet::class)((array)$paymentSourceResponse->getPaypal()))
+            ->paypal($this->castToPayPalWallet($paymentSourceResponse->getPaypal()))
             ->build();
         $applicationContext = $this->getApplicationContext();
         if (($this->config['success_route'] ?? null) !== null && $applicationContext->build()->getReturnUrl() === null) {
@@ -324,6 +327,20 @@ class PayPalOrder extends PayPal
         $this->order = $apiResponse->getResult();
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
+    }
+
+    public function castToPayPalWallet(PaypalWalletResponse $response): PayPalWallet
+    {
+        $wallet = new PayPalWallet();
+        $wallet->setEmailAddress($response->getEmailAddress());
+        $wallet->setName($response->getName());
+        $wallet->setPhone(PhoneWithTypeBuilder::init($response->getPhoneNumber())->phoneType($response->getPhoneType())->build());
+        $wallet->setBirthDate($response->getBirthDate());
+        $wallet->setTaxInfo($response->getTaxInfo());
+        $wallet->setAddress($response->getAddress());
+        $wallet->setAttributes($response->getAttributes());
+
+        return $wallet;
     }
 
     /**
