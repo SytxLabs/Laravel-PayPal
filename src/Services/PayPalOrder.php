@@ -232,6 +232,22 @@ class PayPalOrder extends PayPal
         return $this->order;
     }
 
+    public function getOrderFromPayPal(string $id): Order
+    {
+        $client = $this->controller ?? $this->build()->controller;
+        if ($client === null) {
+            throw new RuntimeException('PayPal client not found');
+        }
+        $apiResponse = $client->ordersGet([
+            'id' => $id,
+        ]);
+        if ($apiResponse->isError() || !($apiResponse->getResult() instanceof Order)) {
+            throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
+        }
+        $this->order = $apiResponse->getResult();
+        return $this->order;
+    }
+
     /**
      * @throws RuntimeException
      */
@@ -275,6 +291,8 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
+        $order = $this->getOrderFromPayPal($this->order->getId());
+        dd($order);
         $data = [
             'id' => $this->order->getId(),
             //'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
