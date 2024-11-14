@@ -24,12 +24,14 @@ use PaypalServerSdkLib\Models\Builders\OrderTrackerRequestBuilder;
 use PaypalServerSdkLib\Models\Builders\PayerBuilder;
 use PaypalServerSdkLib\Models\Builders\PaymentInstructionBuilder;
 use PaypalServerSdkLib\Models\Builders\PaymentSourceBuilder;
+use PaypalServerSdkLib\Models\Builders\PaypalWalletBuilder;
 use PaypalServerSdkLib\Models\Builders\PurchaseUnitRequestBuilder;
 use PaypalServerSdkLib\Models\LinkDescription;
 use PaypalServerSdkLib\Models\Order;
 use PaypalServerSdkLib\Models\Payer;
 use PaypalServerSdkLib\Models\PaymentInstruction;
 use PaypalServerSdkLib\Models\PaymentSource;
+use PaypalServerSdkLib\Models\PaypalWallet;
 use RuntimeException;
 use SytxLabs\PayPal\Enums\PayPalCheckoutPaymentIntent;
 use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
@@ -299,20 +301,7 @@ class PayPalOrder extends PayPal
             throw new RuntimeException('Payment source not found');
         }
         $paymentSource = PaymentSourceBuilder::init()
-            ->card($paymentSourceResponse->getCard())
-            ->paypal($paymentSourceResponse->getPaypal())
-            ->bancontact($paymentSourceResponse->getBancontact())
-            ->blik($paymentSourceResponse->getBlik())
-            ->eps($paymentSourceResponse->getEps())
-            ->giropay($paymentSourceResponse->getGiropay())
-            ->ideal($paymentSourceResponse->getIdeal())
-            ->mybank($paymentSourceResponse->getMybank())
-            ->p24($paymentSourceResponse->getP24())
-            ->sofort($paymentSourceResponse->getSofort())
-            ->trustly($paymentSourceResponse->getTrustly())
-            ->applePay($paymentSourceResponse->getApplePay())
-            ->googlePay($paymentSourceResponse->getGooglePay())
-            ->venmo($paymentSourceResponse->getVenmo())
+            ->paypal((PaypalWallet::class)((array)$paymentSourceResponse->getPaypal()))
             ->build();
         $applicationContext = $this->getApplicationContext();
         if (($this->config['success_route'] ?? null) !== null && $applicationContext->build()->getReturnUrl() === null) {
