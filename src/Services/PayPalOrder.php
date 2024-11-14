@@ -296,7 +296,7 @@ class PayPalOrder extends PayPal
                 'request_id' => $this->payPalRequestId,
                 'order' => $this->order,
                 'intent' => $this->intent,
-                'apiRequest' => $apiResponse->getRequest()
+                'apiRequest' => $apiResponse->getRequest()->getQueryUrl()
             ]);
             throw new CaptureOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
