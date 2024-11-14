@@ -14,7 +14,9 @@ use PaypalServerSDKLib\Models\Builders\AmountWithBreakdownBuilder;
 use PaypalServerSDKLib\Models\Builders\ItemBuilder;
 use PaypalServerSDKLib\Models\Builders\MoneyBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderApplicationContextBuilder;
+use PaypalServerSDKLib\Models\Builders\OrderAuthorizeRequestBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderBuilder;
+use PaypalServerSDKLib\Models\Builders\OrderCaptureRequestBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderRequestBuilder;
 use PaypalServerSDKLib\Models\Builders\OrderTrackerRequestBuilder;
 use PaypalServerSDKLib\Models\Builders\PayerBuilder;
@@ -23,6 +25,7 @@ use PaypalServerSDKLib\Models\Builders\PaymentSourceBuilder;
 use PaypalServerSDKLib\Models\Builders\PurchaseUnitRequestBuilder;
 use PaypalServerSDKLib\Models\LinkDescription;
 use PaypalServerSDKLib\Models\Order;
+use PaypalServerSDKLib\Models\OrderCaptureRequest;
 use PaypalServerSDKLib\Models\Payer;
 use PaypalServerSDKLib\Models\PaymentInstruction;
 use PaypalServerSDKLib\Models\PaymentSource;
@@ -273,8 +276,15 @@ class PayPalOrder extends PayPal
         }
         $data = [
             'id' => $this->order->getId(),
-            //'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
+            'payPalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
         ];
+
+        if (($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value) {
+            $data['body'] = OrderCaptureRequestBuilder::init()->build();
+        } else {
+            $data['body'] = OrderAuthorizeRequestBuilder::init()->build();
+        }
+
         $apiResponse = ($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value ?
             $client->ordersCapture($data) :
             $client->ordersAuthorize($data);
