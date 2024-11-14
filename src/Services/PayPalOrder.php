@@ -335,7 +335,7 @@ class PayPalOrder extends PayPal
         $wallet->setEmailAddress($response->getEmailAddress());
         $wallet->setName($response->getName());
         if ($response->getPhoneNumber() !== null) {
-            $wallet->setPhone(PhoneWithTypeBuilder::init($response->getPhoneNumber())->phoneType($response->getPhone()->getPhoneType())->build());
+            $wallet->setPhone(PhoneWithTypeBuilder::init($response->getPhoneNumber())->phoneType($response->getPhoneType())->build());
         }
         $wallet->setBirthDate($response->getBirthDate());
         $wallet->setTaxInfo($response->getTaxInfo());
