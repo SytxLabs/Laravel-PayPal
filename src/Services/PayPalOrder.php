@@ -273,7 +273,7 @@ class PayPalOrder extends PayPal
         }
         $data = [
             'id' => $this->order->getId(),
-            'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
+            //'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
         ];
         $apiResponse = ($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value ?
             $client->ordersCapture($data) :
