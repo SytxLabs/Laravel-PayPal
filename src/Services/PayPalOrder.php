@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use PaypalServerSdkLib\Controllers\OrdersController;
 use PaypalServerSdkLib\Models\Builders\AmountBreakdownBuilder;
 use PaypalServerSdkLib\Models\Builders\AmountWithBreakdownBuilder;
+use PaypalServerSdkLib\Models\Builders\ConfirmOrderRequestBuilder;
 use PaypalServerSdkLib\Models\Builders\ItemBuilder;
 use PaypalServerSdkLib\Models\Builders\MoneyBuilder;
 use PaypalServerSdkLib\Models\Builders\OrderApplicationContextBuilder;
@@ -95,6 +96,19 @@ class PayPalOrder extends PayPal
         return $this;
     }
 
+    private function getApplicationContext(): OrderApplicationContextBuilder
+    {
+        if ($this->applicationContext === null) {
+            $this->applicationContext = OrderApplicationContextBuilder::init();
+            if (function_exists('config') && app()->bound('config')) {
+                $this->applicationContext = $this->applicationContext
+                    ->brandName(config('app.name'))
+                    ->landingPage(config('app.url'));
+            };
+        }
+        return $this->applicationContext;
+    }
+
     public function setPayer(?PayerBuilder $payer): self
     {
         $this->payer = $payer?->build();
@@ -123,18 +137,10 @@ class PayPalOrder extends PayPal
         if ($client === null) {
             throw new RuntimeException('PayPal client not found');
         }
-        $applicationContext = $this->applicationContext;
-        if ($applicationContext === null) {
-            $applicationContext = OrderApplicationContextBuilder::init();
-            if (function_exists('config') && app()->bound('config')) {
-                $applicationContext = $applicationContext
-                    ->brandName(config('app.name'))
-                    ->landingPage(config('app.url'));
-            }
-        }
         if ($this->items->count() < 1) {
             throw new RuntimeException('No items added to the order');
         }
+        $applicationContext = $this->getApplicationContext();
         if (($this->config['success_route'] ?? null) !== null && $applicationContext->build()->getReturnUrl() === null) {
             $applicationContext = $applicationContext->returnUrl($this->config['success_route']);
         }
@@ -232,19 +238,20 @@ class PayPalOrder extends PayPal
         return $this->order;
     }
 
-    public function getOrderFromPayPal(string $id): Order
+    public function getOrderFromPayPal(?string $id = null): Order
     {
         $client = $this->controller ?? $this->build()->controller;
         if ($client === null) {
             throw new RuntimeException('PayPal client not found');
         }
         $apiResponse = $client->ordersGet([
-            'id' => $id,
+            'id' => $id ?? $this->order->getId(),
         ]);
         if ($apiResponse->isError() || !($apiResponse->getResult() instanceof Order)) {
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = $apiResponse->getResult();
+        $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this->order;
     }
 
@@ -279,6 +286,58 @@ class PayPalOrder extends PayPal
         return $approveLink->getHref();
     }
 
+    public function confirmOrder(): self
+    {
+        $client = $this->controller ?? $this->build()->controller;
+        if ($client === null) {
+            throw new RuntimeException('PayPal client not found');
+        }
+        if ($this->order === null) {
+            throw new RuntimeException('Order not found');
+        }
+        $paymentSourceResponse = $this->order->getPaymentSource();
+        if ($paymentSourceResponse === null) {
+            throw new RuntimeException('Payment source not found');
+        }
+        $paymentSource = PaymentSourceBuilder::init()
+            ->card($paymentSourceResponse->getCard())
+            ->paypal($paymentSourceResponse->getPaypal())
+            ->bancontact($paymentSourceResponse->getBancontact())
+            ->blik($paymentSourceResponse->getBlik())
+            ->eps($paymentSourceResponse->getEps())
+            ->giropay($paymentSourceResponse->getGiropay())
+            ->ideal($paymentSourceResponse->getIdeal())
+            ->mybank($paymentSourceResponse->getMybank())
+            ->p24($paymentSourceResponse->getP24())
+            ->sofort($paymentSourceResponse->getSofort())
+            ->trustly($paymentSourceResponse->getTrustly())
+            ->applePay($paymentSourceResponse->getApplePay())
+            ->googlePay($paymentSourceResponse->getGooglePay())
+            ->venmo($paymentSourceResponse->getVenmo())
+            ->build();
+        $applicationContext = $this->getApplicationContext();
+        if (($this->config['success_route'] ?? null) !== null && $applicationContext->build()->getReturnUrl() === null) {
+            $applicationContext = $applicationContext->returnUrl($this->config['success_route']);
+        }
+        if (($this->config['cancel_route'] ?? null) !== null && $applicationContext->build()->getCancelUrl() === null) {
+            $applicationContext = $applicationContext->cancelUrl($this->config['cancel_route']);
+        }
+        $apiResponse = $client->ordersConfirm([
+            'id' => $this->order->getId(),
+            'body' => ConfirmOrderRequestBuilder::init($paymentSource)
+                ->applicationContext($applicationContext)
+                ->processingInstruction($this->order->getProcessingInstruction())
+                ->build()
+        ]);
+        dd($apiResponse);
+        if ($apiResponse->isError()) {
+            throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
+        }
+        $this->order = $apiResponse->getResult();
+        $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
+        return $this;
+    }
+
     /**
      * @throws CaptureOrderException|RuntimeException
      */
@@ -291,8 +350,9 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
-        $order = $this->getOrderFromPayPal($this->order->getId());
-        dd($order);
+        $order = $this->getOrderFromPayPal();
+
+        dd(Order)
         $data = [
             'id' => $this->order->getId(),
             //'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
