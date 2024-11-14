@@ -316,7 +316,6 @@ class PayPalOrder extends PayPal
         $apiResponse = $client->ordersConfirm([
             'id' => $this->order->getId(),
             'body' => ConfirmOrderRequestBuilder::init($paymentSource)
-                ->applicationContext($applicationContext)
                 ->processingInstruction($this->order->getProcessingInstruction())
                 ->build(),
         ]);
