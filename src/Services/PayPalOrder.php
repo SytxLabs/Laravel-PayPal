@@ -7,6 +7,7 @@ namespace SytxLabs\PayPal\Services;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\ResponseFactory;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use PaypalServerSDKLib\Controllers\OrdersController;
 use PaypalServerSDKLib\Models\Builders\AmountBreakdownBuilder;
@@ -276,19 +277,27 @@ class PayPalOrder extends PayPal
         }
         $data = [
             'id' => $this->order->getId(),
-            'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
+            //'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
         ];
 
-        if (($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value) {
-            $data['body'] = OrderCaptureRequestBuilder::init()->build();
-        } else {
-            $data['body'] = OrderAuthorizeRequestBuilder::init()->build();
-        }
+//        if (($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value) {
+//            $data['body'] = OrderCaptureRequestBuilder::init()->build();
+//        } else {
+//            $data['body'] = OrderAuthorizeRequestBuilder::init()->build();
+//        }
 
         $apiResponse = ($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value ?
             $client->ordersCapture($data) :
             $client->ordersAuthorize($data);
         if ($apiResponse->isError()) {
+            Log::error('CaptureOrderException: ' . $apiResponse->getReasonPhrase() ?? 'An error occurred', [
+                'response' => $apiResponse->getResult(),
+                'request' => $data,
+                'request_id' => $this->payPalRequestId,
+                'order' => $this->order,
+                'intent' => $this->intent,
+                'apiRequest' => $apiResponse->getRequest()
+            ]);
             throw new CaptureOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
         $this->order = $apiResponse->getResult();
