@@ -14,4 +14,12 @@ enum PayPalModeType: string
             self::Live => 'Production',
         };
     }
+
+    public function getPayPalEnvironmentURL(): string
+    {
+        return match ($this) {
+            self::Sandbox => 'https://api-m.sandbox.paypal.com',
+            self::Live => 'https://api-m.paypal.com',
+        };
+    }
 }

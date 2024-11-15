@@ -15,6 +15,7 @@ return [
     'retry' => [
         'enabled' => env('PAYPAL_RETRY_ENABLED'), // Enable failed request retry default null
         'attempts' => env('PAYPAL_RETRY_ATTEMPTS', 3),
+        'delay' => env('PAYPAL_RETRY_DELAY', 100),
     ],
     'timeout' => env('PAYPAL_TIMEOUT'),
 

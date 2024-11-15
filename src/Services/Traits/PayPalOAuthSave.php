@@ -5,7 +5,7 @@ namespace SytxLabs\PayPal\Services\Traits;
 use Illuminate\Database\Connection;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\DB;
-use PaypalServerSdkLib\Models\OAuthToken;
+use SytxLabs\PayPal\Models\DTO\OAuthToken;
 
 trait PayPalOAuthSave
 {
@@ -61,11 +61,11 @@ trait PayPalOAuthSave
         if ($token === null) {
             return null;
         }
-        $oAuth = new OAuthToken($token->access_token, $token->token_type);
-        $oAuth->setExpiry($token->expiry);
-        $oAuth->setScope($token->scope);
-        $oAuth->setRefreshToken($token->refresh_token);
-        $oAuth->setIdToken($token->id_token);
+        $oAuth = (new OAuthToken($token->access_token, $token->token_type))
+            ->setExpiry($token->expiry)
+            ->setScope($token->scope)
+            ->setRefreshToken($token->refresh_token)
+            ->setIdToken($token->id_token);
         if ($oAuth->getExpiry() < time()) {
             return null;
         }

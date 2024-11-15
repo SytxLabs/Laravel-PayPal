@@ -4,51 +4,40 @@
 
 namespace SytxLabs\PayPal\Services;
 
+use Exception;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\ResponseFactory;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
-use PaypalServerSdkLib\Controllers\OrdersController;
-use PaypalServerSdkLib\Models\Builders\AmountBreakdownBuilder;
-use PaypalServerSdkLib\Models\Builders\AmountWithBreakdownBuilder;
-use PaypalServerSdkLib\Models\Builders\ConfirmOrderRequestBuilder;
-use PaypalServerSdkLib\Models\Builders\ItemBuilder;
-use PaypalServerSdkLib\Models\Builders\MoneyBuilder;
-use PaypalServerSdkLib\Models\Builders\OrderApplicationContextBuilder;
-use PaypalServerSdkLib\Models\Builders\OrderBuilder;
-use PaypalServerSdkLib\Models\Builders\OrderRequestBuilder;
-use PaypalServerSdkLib\Models\Builders\OrderTrackerRequestBuilder;
-use PaypalServerSdkLib\Models\Builders\PayerBuilder;
-use PaypalServerSdkLib\Models\Builders\PaymentInstructionBuilder;
-use PaypalServerSdkLib\Models\Builders\PaymentSourceBuilder;
-use PaypalServerSdkLib\Models\Builders\PhoneWithTypeBuilder;
-use PaypalServerSdkLib\Models\Builders\PurchaseUnitRequestBuilder;
-use PaypalServerSdkLib\Models\LinkDescription;
-use PaypalServerSdkLib\Models\Order;
-use PaypalServerSdkLib\Models\Payer;
-use PaypalServerSdkLib\Models\PaymentInstruction;
-use PaypalServerSdkLib\Models\PaymentSource;
-use PaypalServerSdkLib\Models\PaypalWallet;
-use PaypalServerSdkLib\Models\PaypalWalletResponse;
 use RuntimeException;
+use SytxLabs\PayPal\Enums\DTO\LinkHTTPMethod;
 use SytxLabs\PayPal\Enums\PayPalCheckoutPaymentIntent;
 use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
 use SytxLabs\PayPal\Exception\CaptureOrderException;
 use SytxLabs\PayPal\Exception\CreateOrderException;
+use SytxLabs\PayPal\Models\DTO\ApplicationContext;
+use SytxLabs\PayPal\Models\DTO\ConfirmOrder;
+use SytxLabs\PayPal\Models\DTO\LinkDescription;
+use SytxLabs\PayPal\Models\DTO\Money;
+use SytxLabs\PayPal\Models\DTO\Order;
+use SytxLabs\PayPal\Models\DTO\Order\PaymentInstruction;
+use SytxLabs\PayPal\Models\DTO\Payer;
+use SytxLabs\PayPal\Models\DTO\PaymentSource;
+use SytxLabs\PayPal\Models\DTO\Product;
+use SytxLabs\PayPal\Models\DTO\Shipping\OrderTrackerRequest;
 use SytxLabs\PayPal\Models\Order as OrderModel;
-use SytxLabs\PayPal\Models\Product;
 use SytxLabs\PayPal\Services\Traits\PayPalOrderSave;
 
 class PayPalOrder extends PayPal
 {
     use PayPalOrderSave;
 
-    private ?OrdersController $controller = null;
+    private ?PendingRequest $controller = null;
     private PayPalCheckoutPaymentIntent $intent;
     private Collection $items;
     private ?PaymentSource $paymentSource = null;
-    private ?OrderApplicationContextBuilder $applicationContext = null;
+    private ?ApplicationContext $applicationContext = null;
     private ?Payer $payer = null;
     private ?PaymentInstruction $platformInstruction = null;
 
@@ -65,7 +54,11 @@ class PayPalOrder extends PayPal
     public function build(): self
     {
         parent::build();
-        $this->controller = $this->getClient()?->getOrdersController();
+        $this->controller = $this->getClient();
+        if ($this->controller === null) {
+            throw new RuntimeException('PayPal client not found');
+        }
+        $this->controller->baseUrl($this->mode->getPayPalEnvironmentURL() . '/v2/checkout/orders');
         return $this;
     }
 
@@ -84,52 +77,58 @@ class PayPalOrder extends PayPal
         return $this;
     }
 
-    public function setPaymentSource(?PaymentSourceBuilder $paymentSource): self
+    public function setPaymentSource(?PaymentSource $paymentSource): self
     {
-        $this->paymentSource = $paymentSource?->build();
+        $this->paymentSource = $paymentSource;
         return $this;
     }
 
-    public function setApplicationContext(?OrderApplicationContextBuilder $applicationContext): self
+    public function setApplicationContext(?ApplicationContext $applicationContext): self
     {
         $this->applicationContext = $applicationContext;
         return $this;
     }
 
-    private function getApplicationContext(): OrderApplicationContextBuilder
+    private function getApplicationContext(): ApplicationContext
     {
         if ($this->applicationContext === null) {
-            $this->applicationContext = OrderApplicationContextBuilder::init();
+            $this->applicationContext = new ApplicationContext();
             if (function_exists('config') && app()->bound('config')) {
                 $this->applicationContext = $this->applicationContext
-                    ->brandName(config('app.name'))
-                    ->landingPage(config('app.url'));
-            };
+                    ->setBrandName(config('app.name'))
+                    ->setLandingPage(config('app.url'));
+            }
+        }
+        if (($this->config['success_route'] ?? null) !== null && $this->applicationContext->getReturnUrl() === null) {
+            $this->applicationContext = $this->applicationContext->setReturnUrl($this->config['success_route']);
+        }
+        if (($this->config['cancel_route'] ?? null) !== null && $this->applicationContext->getCancelUrl() === null) {
+            $this->applicationContext = $this->applicationContext->setCancelUrl($this->config['cancel_route']);
         }
         return $this->applicationContext;
     }
 
-    public function setPayer(?PayerBuilder $payer): self
+    public function setPayer(?Payer $payer): self
     {
-        $this->payer = $payer?->build();
+        $this->payer = $payer;
         return $this;
     }
 
-    public function setPlatformFee(?PaymentInstructionBuilder $platformInstruction): self
+    public function setPlatformFee(?PaymentInstruction $platformInstruction): self
     {
-        $this->platformInstruction = $platformInstruction?->build();
+        $this->platformInstruction = $platformInstruction;
         return $this;
     }
 
     public function getGroupedProducts(): Collection
     {
         return $this->items->groupBy(
-            static fn (Product $item) => $item->payee?->email !== null ? $item->payee->email . '_' . ($item->payee?->merchantId ?? '') : ''
+            static fn (Product $item) => $item->payee?->getEmailAddress() !== null ? $item->payee->getEmailAddress() . '_' . ($item->payee?->getMerchantId() ?? '') : ''
         );
     }
 
     /**
-     * @throws RuntimeException|CreateOrderException
+     * @throws RuntimeException|CreateOrderException|Exception
      */
     public function createOrder(): self
     {
@@ -141,12 +140,6 @@ class PayPalOrder extends PayPal
             throw new RuntimeException('No items added to the order');
         }
         $applicationContext = $this->getApplicationContext();
-        if (($this->config['success_route'] ?? null) !== null && $applicationContext->build()->getReturnUrl() === null) {
-            $applicationContext = $applicationContext->returnUrl($this->config['success_route']);
-        }
-        if (($this->config['cancel_route'] ?? null) !== null && $applicationContext->build()->getCancelUrl() === null) {
-            $applicationContext = $applicationContext->cancelUrl($this->config['cancel_route']);
-        }
         $grouped = $this->getGroupedProducts();
         if ($grouped->count() > 10) {
             throw new RuntimeException('Maximum of 10 payees allowed per order');
@@ -158,49 +151,54 @@ class PayPalOrder extends PayPal
             $payee = $sortedItems->first()?->payee;
             foreach ($sortedItems as $item) {
                 $code = $item->currencyCode ?? $this->currency ?? 'USD';
-                $items[] = ItemBuilder::init($item->name, MoneyBuilder::init($code, $item->unitPrice . '')->build(), $item->quantity . '')
-                    ->imageUrl($item->imageUrl)
-                    ->sku($item->sku)
-                    ->description($item->description)
-                    ->category($item->category?->value)
-                    ->url($item->url)
-                    ->upc($item->upc)
-                    ->tax(MoneyBuilder::init($code, ($item->tax ?? 0) . '')->build())
-                    ->build();
+                $items[] = (new Order\Item($item->name, new Money($code, $item->unitPrice . ''), $item->quantity . ''))
+                    ->setImageUrl($item->imageUrl)
+                    ->setSku($item->sku)
+                    ->setDescription($item->description)
+                    ->setCategory($item->category)
+                    ->setUrl($item->url)
+                    ->setUpc($item->upc)
+                    ->setTax(new Money($code, ($item->tax ?? 0) . ''));
             }
-            $purchaseUnits[] = PurchaseUnitRequestBuilder::init(
-                AmountWithBreakdownBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => (($item->totalPrice ?? ($item->unitPrice * $item->quantity)) + $item->tax + $item->shipping) - ($item->shippingDiscount + $item->discount)) . '')->breakdown(
-                    AmountBreakdownBuilder::init()
-                        ->itemTotal(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->totalPrice ?? ($item->unitPrice * $item->quantity)) . '')->build())
-                        ->taxTotal(MoneyBuilder::init($currencyCode, ($sortedItems->sum(static fn (Product $item) => $item->tax)) . '')->build())
-                        ->shipping(MoneyBuilder::init($currencyCode, ($sortedItems->sum(static fn (Product $item) => $item->shipping)) . '')->build())
-                        ->shippingDiscount(MoneyBuilder::init($currencyCode, ($sortedItems->sum(static fn (Product $item) => $item->shippingDiscount)) . '')->build())
-                        ->discount(MoneyBuilder::init($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->discount) . '')->build())
-                    ->build()
-                )->build()
-            )
-                ->payee($payee)
-                ->paymentInstruction($this->platformInstruction)
-                ->shipping($payee?->shippingDetail?->build())
-                ->referenceId($payee?->referenceId ?? Str::random())
-                ->items($items)
-                ->build();
+            $purchaseUnits[] = (new Order\PurchaseUnit())->setAmount(
+                (new Order\AmountWithBreakdown($currencyCode, $sortedItems->sum(static fn (Product $item) => (($item->totalPrice ?? ($item->unitPrice * $item->quantity)) + $item->tax + $item->shipping) - ($item->shippingDiscount + $item->discount)) . ''))->setBreakdown(
+                    (new Order\AmountBreakdown())
+                        ->setItemTotal(new Money($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->totalPrice ?? ($item->unitPrice * $item->quantity)) . ''))
+                        ->setTaxTotal(new Money($currencyCode, ($sortedItems->sum(static fn (Product $item) => $item->tax)) . ''))
+                        ->setShipping(new Money($currencyCode, ($sortedItems->sum(static fn (Product $item) => $item->shipping)) . ''))
+                        ->setShippingDiscount(new Money($currencyCode, ($sortedItems->sum(static fn (Product $item) => $item->shippingDiscount)) . ''))
+                        ->setDiscount(new Money($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->discount) . ''))
+                )
+            )->setPayee($payee)
+                ->setPaymentInstruction($this->platformInstruction)
+                ->setShipping($payee?->getShippingDetail()?->build())
+                ->setReferenceId($payee?->referenceId ?? Str::random())
+                ->setItems($items);
         }
 
         $this->payPalRequestId ??= $this->generateRequestId();
-        $apiResponse = $client->ordersCreate([
-            'body' => OrderRequestBuilder::init($this->intent->value, $purchaseUnits)
-                    ->paymentSource($this->paymentSource)
-                    ->applicationContext($applicationContext->build())
-                    ->payer($this->payer)
-                    ->build(),
-            'payPalRequestId' => $this->payPalRequestId,
-        ]);
-        if ($apiResponse->isError() || !($apiResponse->getResult() instanceof Order)) {
+        $order = (new Order())->setIntent($this->intent)
+            ->setPurchaseUnits($purchaseUnits)
+            ->setPaymentSource($this->paymentSource)
+            ->setApplicationContext($applicationContext)
+            ->setPayer($this->payer);
+        $apiResponse = $client
+            ->withHeader('PayPal-Request-Id', $this->payPalRequestId)
+            ->withHeader('Prefer', 'return=representation')
+            ->post('', $order);
+        $result = $apiResponse->json();
+        if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {
             throw new CreateOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
-        $this->order = $apiResponse->getResult();
-        $this->order->setIntent($this->intent->value);
+        $order->setId($result['id']);
+        $order->setStatus(PayPalOrderCompletionType::tryFrom($result['status']));
+        $links = [];
+        foreach ($result['links'] as $link) {
+            $links[] = (new LinkDescription($link['href'], $link['rel']))->setMethod(LinkHTTPMethod::tryFrom($link['method'] ?? ''));
+        }
+        $order->setLinks($links);
+        $order->setCreateTime($result['create_time']);
+        $this->order = $order;
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }
@@ -234,23 +232,24 @@ class PayPalOrder extends PayPal
             $this->payPalRequestId = $dbOrder->request_id;
             return $this->order;
         }
-        $this->order = OrderBuilder::init()->id($id)->build();
+        $this->order = (new Order())->setId($id);
         return $this->order;
     }
 
+    /**
+     * @throws Exception
+     */
     public function getOrderFromPayPal(?string $id = null): Order
     {
         $client = $this->controller ?? $this->build()->controller;
         if ($client === null) {
             throw new RuntimeException('PayPal client not found');
         }
-        $apiResponse = $client->ordersGet([
-            'id' => $id ?? $this->order->getId(),
-        ]);
-        if ($apiResponse->isError() || !($apiResponse->getResult() instanceof Order)) {
+        $apiResponse = $client->get($id ?? $this->order->getId());
+        if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
-        $this->order = $apiResponse->getResult();
+        $this->order = Order::fromArray($apiResponse->json());
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this->order;
     }
@@ -286,6 +285,9 @@ class PayPalOrder extends PayPal
         return $approveLink->getHref();
     }
 
+    /**
+     * @throws Exception
+     */
     public function confirmOrder(): self
     {
         $client = $this->controller ?? $this->build()->controller;
@@ -299,48 +301,24 @@ class PayPalOrder extends PayPal
         if ($paymentSourceResponse === null) {
             throw new RuntimeException('Payment source not found');
         }
-        $paymentSource = PaymentSourceBuilder::init()
-            ->paypal($this->castToPayPalWallet($paymentSourceResponse->getPaypal()))
-            ->build();
-        $applicationContext = $this->getApplicationContext();
-        if (($this->config['success_route'] ?? null) !== null && $applicationContext->build()->getReturnUrl() === null) {
-            $applicationContext = $applicationContext->returnUrl($this->config['success_route']);
-        }
-        if (($this->config['cancel_route'] ?? null) !== null && $applicationContext->build()->getCancelUrl() === null) {
-            $applicationContext = $applicationContext->cancelUrl($this->config['cancel_route']);
-        }
-        $apiResponse = $client->ordersConfirm([
-            'id' => $this->order->getId(),
-            'body' => ConfirmOrderRequestBuilder::init($paymentSource)
-                ->processingInstruction($this->order->getProcessingInstruction())
-                ->build(),
-        ]);
-        if ($apiResponse->isError()) {
+        $apiResponse = $client
+            ->withHeader('PayPal-Request-Id', $this->payPalRequestId)
+            ->withHeader('Prefer', 'return=representation')
+            ->post($this->order->getId() . '/confirm-payment-source', [
+                'id' => $this->order->getId(),
+                'body' => (new ConfirmOrder($paymentSourceResponse))->setProcessingInstruction($this->order->getProcessingInstruction()),
+            ]);
+        if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
-        $this->order = $apiResponse->getResult();
+        $this->order = Order::fromArray($apiResponse->json());
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }
 
-    public function castToPayPalWallet(PaypalWalletResponse $response): PayPalWallet
-    {
-        $wallet = new PayPalWallet();
-        $wallet->setEmailAddress($response->getEmailAddress());
-        $wallet->setName($response->getName());
-        if ($response->getPhoneNumber() !== null) {
-            $wallet->setPhone(PhoneWithTypeBuilder::init($response->getPhoneNumber())->phoneType($response->getPhoneType())->build());
-        }
-        $wallet->setBirthDate($response->getBirthDate());
-        $wallet->setTaxInfo($response->getTaxInfo());
-        $wallet->setAddress($response->getAddress());
-        $wallet->setAttributes($response->getAttributes());
-
-        return $wallet;
-    }
-
     /**
      * @throws CaptureOrderException|RuntimeException
+     * @throws Exception
      */
     public function captureOrder(): self
     {
@@ -352,33 +330,29 @@ class PayPalOrder extends PayPal
             throw new RuntimeException('Order not found');
         }
         $this->getOrderFromPayPal();
+        if ($this->order->getStatus() === PayPalOrderCompletionType::COMPLETED) {
+            return $this;
+        }
+        $client = $client->withHeader('Prefer', 'return=minimal');
 
         $data = [
             'id' => $this->order->getId(),
-            // 'paypalRequestId' => $this->payPalRequestId ?? $this->generateRequestId(),
+            'body' => $this->order->getPaymentSource(),
         ];
 
-        //        if (($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value) {
-        //            $data['body'] = OrderCaptureRequestBuilder::init()->build();
-        //        } else {
-        //            $data['body'] = OrderAuthorizeRequestBuilder::init()->build();
-        //        }
-
-        $apiResponse = ($this->order->getIntent() ?? $this->intent->value) !== PayPalCheckoutPaymentIntent::AUTHORIZE->value ?
-            $client->ordersCapture($data) :
-            $client->ordersAuthorize($data);
-        if ($apiResponse->isError()) {
-            Log::error('CaptureOrderException: ' . $apiResponse->getReasonPhrase() ?? 'An error occurred', [
-                'response' => $apiResponse->getResult(),
-                'request' => $data,
+        $apiResponse = ($this->order->getIntent() ?? $this->intent)->value !== PayPalCheckoutPaymentIntent::AUTHORIZE->value ?
+            $client->post($this->order->getId() . '/capture', $data) :
+            $client->post($this->order->getId() . '/authorize', $data);
+        if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
+            $this->log('CaptureOrderException: ' . $apiResponse->getReasonPhrase() ?? 'An error occurred', [
+                'response' => $apiResponse->body(),
                 'request_id' => $this->payPalRequestId,
                 'order' => $this->order,
                 'intent' => $this->intent,
-                'apiRequest' => $apiResponse->getRequest(),
             ]);
             throw new CaptureOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
-        $this->order = $apiResponse->getResult();
+        $this->order = Order::fromArray($apiResponse->json());
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }
@@ -391,10 +365,13 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
-        return PayPalOrderCompletionType::tryFrom(strtoupper($this->order->getStatus() ?? '')) ?? PayPalOrderCompletionType::UNKNOWN;
+        return $this->order->getStatus() ?? PayPalOrderCompletionType::UNKNOWN;
     }
 
-    public function createTracking(OrderTrackerRequestBuilder $builder): self
+    /**
+     * @throws Exception
+     */
+    public function createTracking(OrderTrackerRequest $builder): self
     {
         $client = $this->controller ?? $this->build()->controller;
         if ($client === null) {
@@ -403,14 +380,13 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
-        $apiResponse = $client->ordersTrackCreate([
-            'id' => $this->order->getId(),
-            'body' => $builder->build(),
-        ]);
-        if ($apiResponse->isError()) {
+        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)
+            ->withHeader('Prefer', 'return=representation')
+            ->post($this->order->getId() . '/track', $builder);
+        if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
-        $this->order = $apiResponse->getResult();
+        $this->order = Order::fromArray($apiResponse->json());
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }

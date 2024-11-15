@@ -1,6 +1,6 @@
 <?php
 
-namespace SytxLabs\PayPal\Models;
+namespace SytxLabs\PayPal\Models\DTO;
 
 use PaypalServerSdkLib\Models\Address;
 use PaypalServerSdkLib\Models\Builders\AddressBuilder;

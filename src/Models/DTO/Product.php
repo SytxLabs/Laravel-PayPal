@@ -1,8 +1,7 @@
 <?php
 
-namespace SytxLabs\PayPal\Models;
+namespace SytxLabs\PayPal\Models\DTO;
 
-use PaypalServerSdkLib\Models\UniversalProductCode;
 use SytxLabs\PayPal\Enums\PayPalItemCategory;
 
 class Product

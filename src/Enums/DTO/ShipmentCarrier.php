@@ -1,0 +1,2558 @@
+<?php
+
+namespace SytxLabs\PayPal\Enums\DTO;
+
+enum ShipmentCarrier: string
+{
+    case DPD_RU = 'DPD_RU';
+
+    case BG_BULGARIAN_POST = 'BG_BULGARIAN_POST';
+
+    case KR_KOREA_POST = 'KR_KOREA_POST';
+
+    case ZA_COURIERIT = 'ZA_COURIERIT';
+
+    case FR_EXAPAQ = 'FR_EXAPAQ';
+
+    case ARE_EMIRATES_POST = 'ARE_EMIRATES_POST';
+
+    case GAC = 'GAC';
+
+    case GEIS = 'GEIS';
+
+    case SF_EX = 'SF_EX';
+
+    case PAGO = 'PAGO';
+
+    case MYHERMES = 'MYHERMES';
+
+    case DIAMOND_EUROGISTICS = 'DIAMOND_EUROGISTICS';
+
+    case CORPORATECOURIERS_WEBHOOK = 'CORPORATECOURIERS_WEBHOOK';
+
+    case BOND = 'BOND';
+
+    case OMNIPARCEL = 'OMNIPARCEL';
+
+    case SK_POSTA = 'SK_POSTA';
+
+    case PUROLATOR = 'PUROLATOR';
+
+    case FETCHR_WEBHOOK = 'FETCHR_WEBHOOK';
+
+    case THEDELIVERYGROUP = 'THEDELIVERYGROUP';
+
+    case CELLO_SQUARE = 'CELLO_SQUARE';
+
+    case TARRIVE = 'TARRIVE';
+
+    case COLLIVERY = 'COLLIVERY';
+
+    case MAINFREIGHT = 'MAINFREIGHT';
+
+    case IND_FIRSTFLIGHT = 'IND_FIRSTFLIGHT';
+
+    case ACSWORLDWIDE = 'ACSWORLDWIDE';
+
+    case AMSTAN = 'AMSTAN';
+
+    case OKAYPARCEL = 'OKAYPARCEL';
+
+    case ENVIALIA_REFERENCE = 'ENVIALIA_REFERENCE';
+
+    case SEUR_ES = 'SEUR_ES';
+
+    case CONTINENTAL = 'CONTINENTAL';
+
+    case FDSEXPRESS = 'FDSEXPRESS';
+
+    case AMAZON_FBA_SWISHIP = 'AMAZON_FBA_SWISHIP';
+
+    case WYNGS = 'WYNGS';
+
+    case DHL_ACTIVE_TRACING = 'DHL_ACTIVE_TRACING';
+
+    case ZYLLEM = 'ZYLLEM';
+
+    case RUSTON = 'RUSTON';
+
+    case XPOST = 'XPOST';
+
+    case CORREOS_ES = 'CORREOS_ES';
+
+    case DHL_FR = 'DHL_FR';
+
+    case PAN_ASIA = 'PAN_ASIA';
+
+    case BRT_IT = 'BRT_IT';
+
+    case SRE_KOREA = 'SRE_KOREA';
+
+    case SPEEDEE = 'SPEEDEE';
+
+    case TNT_UK = 'TNT_UK';
+
+    case VENIPAK = 'VENIPAK';
+
+    case SHREENANDANCOURIER = 'SHREENANDANCOURIER';
+
+    case CROSHOT = 'CROSHOT';
+
+    case NIPOST_NG = 'NIPOST_NG';
+
+    case EPST_GLBL = 'EPST_GLBL';
+
+    case NEWGISTICS = 'NEWGISTICS';
+
+    case POST_SLOVENIA = 'POST_SLOVENIA';
+
+    case JERSEY_POST = 'JERSEY_POST';
+
+    case BOMBINOEXP = 'BOMBINOEXP';
+
+    case WMG = 'WMG';
+
+    case XQ_EXPRESS = 'XQ_EXPRESS';
+
+    case FURDECO = 'FURDECO';
+
+    case LHT_EXPRESS = 'LHT_EXPRESS';
+
+    case SOUTH_AFRICAN_POST_OFFICE = 'SOUTH_AFRICAN_POST_OFFICE';
+
+    case SPOTON = 'SPOTON';
+
+    case DIMERCO = 'DIMERCO';
+
+    case CYPRUS_POST_CYP = 'CYPRUS_POST_CYP';
+
+    case ABCUSTOM = 'ABCUSTOM';
+
+    case IND_DELIVREE = 'IND_DELIVREE';
+
+    case CN_BESTEXPRESS = 'CN_BESTEXPRESS';
+
+    case DX_SFTP = 'DX_SFTP';
+
+    case PICKUPP_MYS = 'PICKUPP_MYS';
+
+    case FMX = 'FMX';
+
+    case HELLMANN = 'HELLMANN';
+
+    case SHIP_IT_ASIA = 'SHIP_IT_ASIA';
+
+    case KERRY_ECOMMERCE = 'KERRY_ECOMMERCE';
+
+    case FRETERAPIDO = 'FRETERAPIDO';
+
+    case PITNEY_BOWES = 'PITNEY_BOWES';
+
+    case XPRESSEN_DK = 'XPRESSEN_DK';
+
+    case SEUR_SP_API = 'SEUR_SP_API';
+
+    case DELIVERYONTIME = 'DELIVERYONTIME';
+
+    case JINSUNG = 'JINSUNG';
+
+    case TRANS_KARGO = 'TRANS_KARGO';
+
+    case SWISHIP_DE = 'SWISHIP_DE';
+
+    case IVOY_WEBHOOK = 'IVOY_WEBHOOK';
+
+    case AIRMEE_WEBHOOK = 'AIRMEE_WEBHOOK';
+
+    case DHL_BENELUX = 'DHL_BENELUX';
+
+    case FIRSTMILE = 'FIRSTMILE';
+
+    case FASTWAY_IR = 'FASTWAY_IR';
+
+    case HH_EXP = 'HH_EXP';
+
+    case MYS_MYPOST_ONLINE = 'MYS_MYPOST_ONLINE';
+
+    case TNT_NL = 'TNT_NL';
+
+    case TIPSA = 'TIPSA';
+
+    case TAQBIN_MY = 'TAQBIN_MY';
+
+    case KGMHUB = 'KGMHUB';
+
+    case INTEXPRESS = 'INTEXPRESS';
+
+    case OVERSE_EXP = 'OVERSE_EXP';
+
+    case ONECLICK = 'ONECLICK';
+
+    case ROADRUNNER_FREIGHT = 'ROADRUNNER_FREIGHT';
+
+    case GLS_CROTIA = 'GLS_CROTIA';
+
+    case MRW_FTP = 'MRW_FTP';
+
+    case BLUEX = 'BLUEX';
+
+    case DYLT = 'DYLT';
+
+    case DPD_IR = 'DPD_IR';
+
+    case SIN_GLBL = 'SIN_GLBL';
+
+    case TUFFNELLS_REFERENCE = 'TUFFNELLS_REFERENCE';
+
+    case CJPACKET = 'CJPACKET';
+
+    case MILKMAN = 'MILKMAN';
+
+    case ASIGNA = 'ASIGNA';
+
+    case ONEWORLDEXPRESS = 'ONEWORLDEXPRESS';
+
+    case ROYAL_MAIL = 'ROYAL_MAIL';
+
+    case VIA_EXPRESS = 'VIA_EXPRESS';
+
+    case TIGFREIGHT = 'TIGFREIGHT';
+
+    case ZTO_EXPRESS = 'ZTO_EXPRESS';
+
+    case TWO_GO = 'TWO_GO';
+
+    case IML = 'IML';
+
+    case INTEL_VALLEY = 'INTEL_VALLEY';
+
+    case EFS = 'EFS';
+
+    case UK_UK_MAIL = 'UK_UK_MAIL';
+
+    case RAM = 'RAM';
+
+    case ALLIEDEXPRESS = 'ALLIEDEXPRESS';
+
+    case APC_OVERNIGHT = 'APC_OVERNIGHT';
+
+    case SHIPPIT = 'SHIPPIT';
+
+    case TFM = 'TFM';
+
+    case M_XPRESS = 'M_XPRESS';
+
+    case HDB_BOX = 'HDB_BOX';
+
+    case CLEVY_LINKS = 'CLEVY_LINKS';
+
+    case IBEONE = 'IBEONE';
+
+    case FIEGE_NL = 'FIEGE_NL';
+
+    case KWE_GLOBAL = 'KWE_GLOBAL';
+
+    case CTC_EXPRESS = 'CTC_EXPRESS';
+
+    case LAO_POST = 'LAO_POST';
+
+    case AMAZON = 'AMAZON';
+
+    case MORE_LINK = 'MORE_LINK';
+
+    case JX = 'JX';
+
+    case EASY_MAIL = 'EASY_MAIL';
+
+    case ADUIEPYLE = 'ADUIEPYLE';
+
+    case GB_PANTHER = 'GB_PANTHER';
+
+    case EXPRESSSALE = 'EXPRESSSALE';
+
+    case SG_DETRACK = 'SG_DETRACK';
+
+    case TRUNKRS_WEBHOOK = 'TRUNKRS_WEBHOOK';
+
+    case MATDESPATCH = 'MATDESPATCH';
+
+    case DICOM = 'DICOM';
+
+    case MBW = 'MBW';
+
+    case KHM_CAMBODIA_POST = 'KHM_CAMBODIA_POST';
+
+    case SINOTRANS = 'SINOTRANS';
+
+    case BRT_IT_PARCELID = 'BRT_IT_PARCELID';
+
+    case DHL_SUPPLY_CHAIN = 'DHL_SUPPLY_CHAIN';
+
+    case DHL_PL = 'DHL_PL';
+
+    case TOPYOU = 'TOPYOU';
+
+    case PALEXPRESS = 'PALEXPRESS';
+
+    case DHL_SG = 'DHL_SG';
+
+    case CN_WEDO = 'CN_WEDO';
+
+    case FULFILLME = 'FULFILLME';
+
+    case DPD_DELISTRACK = 'DPD_DELISTRACK';
+
+    case UPS_REFERENCE = 'UPS_REFERENCE';
+
+    case CARIBOU = 'CARIBOU';
+
+    case LOCUS_WEBHOOK = 'LOCUS_WEBHOOK';
+
+    case DSV = 'DSV';
+
+    case CN_GOFLY = 'CN_GOFLY';
+
+    case P2P_TRC = 'P2P_TRC';
+
+    case DIRECTPARCELS = 'DIRECTPARCELS';
+
+    case NOVA_POSHTA_INT = 'NOVA_POSHTA_INT';
+
+    case FEDEX_POLAND = 'FEDEX_POLAND';
+
+    case CN_JCEX = 'CN_JCEX';
+
+    case FAR_INTERNATIONAL = 'FAR_INTERNATIONAL';
+
+    case IDEXPRESS = 'IDEXPRESS';
+
+    case GANGBAO = 'GANGBAO';
+
+    case NEWAY = 'NEWAY';
+
+    case POSTNL_INT_3_S = 'POSTNL_INT_3_S';
+
+    case RPX_ID = 'RPX_ID';
+
+    case DESIGNERTRANSPORT_WEBHOOK = 'DESIGNERTRANSPORT_WEBHOOK';
+
+    case GLS_SLOVEN = 'GLS_SLOVEN';
+
+    case PARCELLED_IN = 'PARCELLED_IN';
+
+    case GSI_EXPRESS = 'GSI_EXPRESS';
+
+    case CON_WAY = 'CON_WAY';
+
+    case BROUWER_TRANSPORT = 'BROUWER_TRANSPORT';
+
+    case CPEX = 'CPEX';
+
+    case ISRAEL_POST = 'ISRAEL_POST';
+
+    case DTDC_IN = 'DTDC_IN';
+
+    case PTT_POST = 'PTT_POST';
+
+    case XDE_WEBHOOK = 'XDE_WEBHOOK';
+
+    case TOLOS = 'TOLOS';
+
+    case GIAO_HANG = 'GIAO_HANG';
+
+    case GEODIS_ESPACE = 'GEODIS_ESPACE';
+
+    case MAGYAR_HU = 'MAGYAR_HU';
+
+    case DOORDASH_WEBHOOK = 'DOORDASH_WEBHOOK';
+
+    case TIKI_ID = 'TIKI_ID';
+
+    case CJ_HK_INTERNATIONAL = 'CJ_HK_INTERNATIONAL';
+
+    case STAR_TRACK_EXPRESS = 'STAR_TRACK_EXPRESS';
+
+    case HELTHJEM = 'HELTHJEM';
+
+    case SFB2C = 'SFB2C';
+
+    case FREIGHTQUOTE = 'FREIGHTQUOTE';
+
+    case LANDMARK_GLOBAL_REFERENCE = 'LANDMARK_GLOBAL_REFERENCE';
+
+    case PARCEL2GO = 'PARCEL2GO';
+
+    case DELNEXT = 'DELNEXT';
+
+    case RCL = 'RCL';
+
+    case CGS_EXPRESS = 'CGS_EXPRESS';
+
+    case HK_POST = 'HK_POST';
+
+    case SAP_EXPRESS = 'SAP_EXPRESS';
+
+    case PARCELPOST_SG = 'PARCELPOST_SG';
+
+    case HERMES = 'HERMES';
+
+    case IND_SAFEEXPRESS = 'IND_SAFEEXPRESS';
+
+    case TOPHATTEREXPRESS = 'TOPHATTEREXPRESS';
+
+    case MGLOBAL = 'MGLOBAL';
+
+    case AVERITT = 'AVERITT';
+
+    case LEADER = 'LEADER';
+
+    case _2EBOX = '_2EBOX';
+
+    case SG_SPEEDPOST = 'SG_SPEEDPOST';
+
+    case DBSCHENKER_SE = 'DBSCHENKER_SE';
+
+    case ISR_POST_DOMESTIC = 'ISR_POST_DOMESTIC';
+
+    case BESTWAYPARCEL = 'BESTWAYPARCEL';
+
+    case ASENDIA_DE = 'ASENDIA_DE';
+
+    case NIGHTLINE_UK = 'NIGHTLINE_UK';
+
+    case TAQBIN_SG = 'TAQBIN_SG';
+
+    case TCK_EXPRESS = 'TCK_EXPRESS';
+
+    case ENDEAVOUR_DELIVERY = 'ENDEAVOUR_DELIVERY';
+
+    case NANJINGWOYUAN = 'NANJINGWOYUAN';
+
+    case HEPPNER_FR = 'HEPPNER_FR';
+
+    case EMPS_CN = 'EMPS_CN';
+
+    case FONSEN = 'FONSEN';
+
+    case PICKRR = 'PICKRR';
+
+    case APC_OVERNIGHT_CONNUM = 'APC_OVERNIGHT_CONNUM';
+
+    case STAR_TRACK_NEXT_FLIGHT = 'STAR_TRACK_NEXT_FLIGHT';
+
+    case DAJIN = 'DAJIN';
+
+    case UPS_FREIGHT = 'UPS_FREIGHT';
+
+    case POSTA_PLUS = 'POSTA_PLUS';
+
+    case CEVA = 'CEVA';
+
+    case ANSERX = 'ANSERX';
+
+    case JS_EXPRESS = 'JS_EXPRESS';
+
+    case PADTF = 'PADTF';
+
+    case UPS_MAIL_INNOVATIONS = 'UPS_MAIL_INNOVATIONS';
+
+    case EZSHIP = 'EZSHIP';
+
+    case SYPOST = 'SYPOST';
+
+    case AMAZON_SHIP_MCF = 'AMAZON_SHIP_MCF';
+
+    case YUSEN = 'YUSEN';
+
+    case BRING = 'BRING';
+
+    case SDA_IT = 'SDA_IT';
+
+    case GBA = 'GBA';
+
+    case NEWEGGEXPRESS = 'NEWEGGEXPRESS';
+
+    case SPEEDCOURIERS_GR = 'SPEEDCOURIERS_GR';
+
+    case FORRUN = 'FORRUN';
+
+    case PICKUP = 'PICKUP';
+
+    case ECMS = 'ECMS';
+
+    case INTELIPOST = 'INTELIPOST';
+
+    case FLASHEXPRESS = 'FLASHEXPRESS';
+
+    case CN_STO = 'CN_STO';
+
+    case SEKO_SFTP = 'SEKO_SFTP';
+
+    case HOME_DELIVERY_SOLUTIONS = 'HOME_DELIVERY_SOLUTIONS';
+
+    case DPD_HGRY = 'DPD_HGRY';
+
+    case KERRYTTC_VN = 'KERRYTTC_VN';
+
+    case JOYING_BOX = 'JOYING_BOX';
+
+    case TOTAL_EXPRESS = 'TOTAL_EXPRESS';
+
+    case ZJS_EXPRESS = 'ZJS_EXPRESS';
+
+    case STARKEN = 'STARKEN';
+
+    case DEMANDSHIP = 'DEMANDSHIP';
+
+    case CN_DPEX = 'CN_DPEX';
+
+    case AUPOST_CN = 'AUPOST_CN';
+
+    case LOGISTERS = 'LOGISTERS';
+
+    case GOGLOBALPOST = 'GOGLOBALPOST';
+
+    case GLS_CZ = 'GLS_CZ';
+
+    case PAACK_WEBHOOK = 'PAACK_WEBHOOK';
+
+    case GRAB_WEBHOOK = 'GRAB_WEBHOOK';
+
+    case PARCELPOINT = 'PARCELPOINT';
+
+    case ICUMULUS = 'ICUMULUS';
+
+    case DAIGLOBALTRACK = 'DAIGLOBALTRACK';
+
+    case GLOBAL_IPARCEL = 'GLOBAL_IPARCEL';
+
+    case YURTICI_KARGO = 'YURTICI_KARGO';
+
+    case CN_PAYPAL_PACKAGE = 'CN_PAYPAL_PACKAGE';
+
+    case PARCEL_2_POST = 'PARCEL_2_POST';
+
+    case GLS_IT = 'GLS_IT';
+
+    case PIL_LOGISTICS = 'PIL_LOGISTICS';
+
+    case HEPPNER = 'HEPPNER';
+
+    case GENERAL_OVERNIGHT = 'GENERAL_OVERNIGHT';
+
+    case HAPPY2POINT = 'HAPPY2POINT';
+
+    case CHITCHATS = 'CHITCHATS';
+
+    case SMOOTH = 'SMOOTH';
+
+    case CLE_LOGISTICS = 'CLE_LOGISTICS';
+
+    case FIEGE = 'FIEGE';
+
+    case MX_CARGO = 'MX_CARGO';
+
+    case ZIINGFINALMILE = 'ZIINGFINALMILE';
+
+    case DAYTON_FREIGHT = 'DAYTON_FREIGHT';
+
+    case TCS = 'TCS';
+
+    case AEX = 'AEX';
+
+    case HERMES_DE = 'HERMES_DE';
+
+    case ROUTIFIC_WEBHOOK = 'ROUTIFIC_WEBHOOK';
+
+    case GLOBAVEND = 'GLOBAVEND';
+
+    case CJ_LOGISTICS = 'CJ_LOGISTICS';
+
+    case PALLET_NETWORK = 'PALLET_NETWORK';
+
+    case RAF_PH = 'RAF_PH';
+
+    case UK_XDP = 'UK_XDP';
+
+    case PAPER_EXPRESS = 'PAPER_EXPRESS';
+
+    case LA_POSTE_SUIVI = 'LA_POSTE_SUIVI';
+
+    case PAQUETEXPRESS = 'PAQUETEXPRESS';
+
+    case LIEFERY = 'LIEFERY';
+
+    case STRECK_TRANSPORT = 'STRECK_TRANSPORT';
+
+    case PONY_EXPRESS = 'PONY_EXPRESS';
+
+    case ALWAYS_EXPRESS = 'ALWAYS_EXPRESS';
+
+    case GBS_BROKER = 'GBS_BROKER';
+
+    case CITYLINK_MY = 'CITYLINK_MY';
+
+    case ALLJOY = 'ALLJOY';
+
+    case YODEL = 'YODEL';
+
+    case YODEL_DIR = 'YODEL_DIR';
+
+    case STONE3PL = 'STONE3PL';
+
+    case PARCELPAL_WEBHOOK = 'PARCELPAL_WEBHOOK';
+
+    case DHL_ECOMERCE_ASA = 'DHL_ECOMERCE_ASA';
+
+    case SIMPLYPOST = 'SIMPLYPOST';
+
+    case KY_EXPRESS = 'KY_EXPRESS';
+
+    case SHENZHEN = 'SHENZHEN';
+
+    case US_LASERSHIP = 'US_LASERSHIP';
+
+    case UC_EXPRE = 'UC_EXPRE';
+
+    case DIDADI = 'DIDADI';
+
+    case CJ_KR = 'CJ_KR';
+
+    case DBSCHENKER_B2B = 'DBSCHENKER_B2B';
+
+    case MXE = 'MXE';
+
+    case CAE_DELIVERS = 'CAE_DELIVERS';
+
+    case PFCEXPRESS = 'PFCEXPRESS';
+
+    case WHISTL = 'WHISTL';
+
+    case WEPOST = 'WEPOST';
+
+    case DHL_PARCEL_ES = 'DHL_PARCEL_ES';
+
+    case DDEXPRESS = 'DDEXPRESS';
+
+    case ARAMEX_AU = 'ARAMEX_AU';
+
+    case BNEED = 'BNEED';
+
+    case HK_TGX = 'HK_TGX';
+
+    case LATVIJAS_PASTS = 'LATVIJAS_PASTS';
+
+    case VIAEUROPE = 'VIAEUROPE';
+
+    case CORREO_UY = 'CORREO_UY';
+
+    case CHRONOPOST_FR = 'CHRONOPOST_FR';
+
+    case J_NET = 'J_NET';
+
+    case _6LS = '_6LS';
+
+    case BLR_BELPOST = 'BLR_BELPOST';
+
+    case BIRDSYSTEM = 'BIRDSYSTEM';
+
+    case DOBROPOST = 'DOBROPOST';
+
+    case WAHANA_ID = 'WAHANA_ID';
+
+    case WEASHIP = 'WEASHIP';
+
+    case SONICTL = 'SONICTL';
+
+    case KWT = 'KWT';
+
+    case AFLLOG_FTP = 'AFLLOG_FTP';
+
+    case SKYNET_WORLDWIDE = 'SKYNET_WORLDWIDE';
+
+    case NOVA_POSHTA = 'NOVA_POSHTA';
+
+    case SEINO = 'SEINO';
+
+    case SZENDEX = 'SZENDEX';
+
+    case BPOST_INT = 'BPOST_INT';
+
+    case DBSCHENKER_SV = 'DBSCHENKER_SV';
+
+    case AO_DEUTSCHLAND = 'AO_DEUTSCHLAND';
+
+    case EU_FLEET_SOLUTIONS = 'EU_FLEET_SOLUTIONS';
+
+    case PCFCORP = 'PCFCORP';
+
+    case LINKBRIDGE = 'LINKBRIDGE';
+
+    case PRIMAMULTICIPTA = 'PRIMAMULTICIPTA';
+
+    case COUREX = 'COUREX';
+
+    case ZAJIL_EXPRESS = 'ZAJIL_EXPRESS';
+
+    case COLLECTCO = 'COLLECTCO';
+
+    case JTEXPRESS = 'JTEXPRESS';
+
+    case FEDEX_UK = 'FEDEX_UK';
+
+    case USHIP = 'USHIP';
+
+    case PIXSELL = 'PIXSELL';
+
+    case SHIPTOR = 'SHIPTOR';
+
+    case CDEK = 'CDEK';
+
+    case VNM_VIETTELPOST = 'VNM_VIETTELPOST';
+
+    case CJ_CENTURY = 'CJ_CENTURY';
+
+    case GSO = 'GSO';
+
+    case VIWO = 'VIWO';
+
+    case SKYBOX = 'SKYBOX';
+
+    case KERRYTJ = 'KERRYTJ';
+
+    case NTLOGISTICS_VN = 'NTLOGISTICS_VN';
+
+    case SDH_SCM = 'SDH_SCM';
+
+    case ZINC = 'ZINC';
+
+    case DPE_SOUTH_AFRC = 'DPE_SOUTH_AFRC';
+
+    case CESKA_CZ = 'CESKA_CZ';
+
+    case ACS_GR = 'ACS_GR';
+
+    case DEALERSEND = 'DEALERSEND';
+
+    case JOCOM = 'JOCOM';
+
+    case CSE = 'CSE';
+
+    case TFORCE_FINALMILE = 'TFORCE_FINALMILE';
+
+    case SHIP_GATE = 'SHIP_GATE';
+
+    case SHIPTER = 'SHIPTER';
+
+    case NATIONAL_SAMEDAY = 'NATIONAL_SAMEDAY';
+
+    case YUNEXPRESS = 'YUNEXPRESS';
+
+    case CAINIAO = 'CAINIAO';
+
+    case DMS_MATRIX = 'DMS_MATRIX';
+
+    case DIRECTLOG = 'DIRECTLOG';
+
+    case ASENDIA_US = 'ASENDIA_US';
+
+    case _3JMSLOGISTICS = '_3JMSLOGISTICS';
+
+    case LICCARDI_EXPRESS = 'LICCARDI_EXPRESS';
+
+    case SKY_POSTAL = 'SKY_POSTAL';
+
+    case CNWANGTONG = 'CNWANGTONG';
+
+    case POSTNORD_LOGISTICS_DK = 'POSTNORD_LOGISTICS_DK';
+
+    case LOGISTIKA = 'LOGISTIKA';
+
+    case CELERITAS = 'CELERITAS';
+
+    case PRESSIODE = 'PRESSIODE';
+
+    case SHREE_MARUTI = 'SHREE_MARUTI';
+
+    case LOGISTICSWORLDWIDE_HK = 'LOGISTICSWORLDWIDE_HK';
+
+    case EFEX = 'EFEX';
+
+    case LOTTE = 'LOTTE';
+
+    case LONESTAR = 'LONESTAR';
+
+    case APRISAEXPRESS = 'APRISAEXPRESS';
+
+    case BEL_RS = 'BEL_RS';
+
+    case OSM_WORLDWIDE = 'OSM_WORLDWIDE';
+
+    case WESTGATE_GL = 'WESTGATE_GL';
+
+    case FASTRACK = 'FASTRACK';
+
+    case DTD_EXPR = 'DTD_EXPR';
+
+    case ALFATREX = 'ALFATREX';
+
+    case PROMEDDELIVERY = 'PROMEDDELIVERY';
+
+    case THABIT_LOGISTICS = 'THABIT_LOGISTICS';
+
+    case HCT_LOGISTICS = 'HCT_LOGISTICS';
+
+    case CARRY_FLAP = 'CARRY_FLAP';
+
+    case US_OLD_DOMINION = 'US_OLD_DOMINION';
+
+    case ANICAM_BOX = 'ANICAM_BOX';
+
+    case WANBEXPRESS = 'WANBEXPRESS';
+
+    case AN_POST = 'AN_POST';
+
+    case DPD_LOCAL = 'DPD_LOCAL';
+
+    case STALLIONEXPRESS = 'STALLIONEXPRESS';
+
+    case RAIDEREX = 'RAIDEREX';
+
+    case SHOPFANS = 'SHOPFANS';
+
+    case KYUNGDONG_PARCEL = 'KYUNGDONG_PARCEL';
+
+    case CHAMPION_LOGISTICS = 'CHAMPION_LOGISTICS';
+
+    case PICKUPP_SGP = 'PICKUPP_SGP';
+
+    case MORNING_EXPRESS = 'MORNING_EXPRESS';
+
+    case NACEX = 'NACEX';
+
+    case THENILE_WEBHOOK = 'THENILE_WEBHOOK';
+
+    case HOLISOL = 'HOLISOL';
+
+    case LBCEXPRESS_FTP = 'LBCEXPRESS_FTP';
+
+    case KURASI = 'KURASI';
+
+    case USF_REDDAWAY = 'USF_REDDAWAY';
+
+    case APG = 'APG';
+
+    case CN_BOXC = 'CN_BOXC';
+
+    case ECOSCOOTING = 'ECOSCOOTING';
+
+    case MAINWAY = 'MAINWAY';
+
+    case PAPERFLY = 'PAPERFLY';
+
+    case HOUNDEXPRESS = 'HOUNDEXPRESS';
+
+    case BOX_BERRY = 'BOX_BERRY';
+
+    case EP_BOX = 'EP_BOX';
+
+    case PLUS_LOG_UK = 'PLUS_LOG_UK';
+
+    case FULFILLA = 'FULFILLA';
+
+    case ASE = 'ASE';
+
+    case MAIL_PLUS = 'MAIL_PLUS';
+
+    case XPO_LOGISTICS = 'XPO_LOGISTICS';
+
+    case WNDIRECT = 'WNDIRECT';
+
+    case CLOUDWISH_ASIA = 'CLOUDWISH_ASIA';
+
+    case ZELERIS = 'ZELERIS';
+
+    case GIO_EXPRESS = 'GIO_EXPRESS';
+
+    case OCS_WORLDWIDE = 'OCS_WORLDWIDE';
+
+    case ARK_LOGISTICS = 'ARK_LOGISTICS';
+
+    case AQUILINE = 'AQUILINE';
+
+    case PILOT_FREIGHT = 'PILOT_FREIGHT';
+
+    case QWINTRY = 'QWINTRY';
+
+    case DANSKE_FRAGT = 'DANSKE_FRAGT';
+
+    case CARRIERS = 'CARRIERS';
+
+    case AIR_CANADA_GLOBAL = 'AIR_CANADA_GLOBAL';
+
+    case PRESIDENT_TRANS = 'PRESIDENT_TRANS';
+
+    case STEPFORWARDFS = 'STEPFORWARDFS';
+
+    case SKYNET_UK = 'SKYNET_UK';
+
+    case PITTOHIO = 'PITTOHIO';
+
+    case CORREOS_EXPRESS = 'CORREOS_EXPRESS';
+
+    case RL_US = 'RL_US';
+
+    case MARA_XPRESS = 'MARA_XPRESS';
+
+    case DESTINY = 'DESTINY';
+
+    case UK_YODEL = 'UK_YODEL';
+
+    case COMET_TECH = 'COMET_TECH';
+
+    case DHL_PARCEL_RU = 'DHL_PARCEL_RU';
+
+    case TNT_REFR = 'TNT_REFR';
+
+    case SHREE_ANJANI_COURIER = 'SHREE_ANJANI_COURIER';
+
+    case MIKROPAKKET_BE = 'MIKROPAKKET_BE';
+
+    case ETS_EXPRESS = 'ETS_EXPRESS';
+
+    case COLIS_PRIVE = 'COLIS_PRIVE';
+
+    case CN_YUNDA = 'CN_YUNDA';
+
+    case AAA_COOPER = 'AAA_COOPER';
+
+    case ROCKET_PARCEL = 'ROCKET_PARCEL';
+
+    case _360LION = '_360LION';
+
+    case PANDU = 'PANDU';
+
+    case PROFESSIONAL_COURIERS = 'PROFESSIONAL_COURIERS';
+
+    case FLYTEXPRESS = 'FLYTEXPRESS';
+
+    case LOGISTICSWORLDWIDE_MY = 'LOGISTICSWORLDWIDE_MY';
+
+    case CORREOS_DE_ESPANA = 'CORREOS_DE_ESPANA';
+
+    case IMX = 'IMX';
+
+    case FOUR_PX_EXPRESS = 'FOUR_PX_EXPRESS';
+
+    case XPRESSBEES = 'XPRESSBEES';
+
+    case PICKUPP_VNM = 'PICKUPP_VNM';
+
+    case STARTRACK_EXPRESS1 = 'STARTRACK_EXPRESS';
+
+    case FR_COLISSIMO = 'FR_COLISSIMO';
+
+    case NACEX_SPAIN_REFERENCE = 'NACEX_SPAIN_REFERENCE';
+
+    case DHL_SUPPLY_CHAIN_AU = 'DHL_SUPPLY_CHAIN_AU';
+
+    case ESHIPPING = 'ESHIPPING';
+
+    case SHREETIRUPATI = 'SHREETIRUPATI';
+
+    case HX_EXPRESS = 'HX_EXPRESS';
+
+    case INDOPAKET = 'INDOPAKET';
+
+    case CN_17POST = 'CN_17POST';
+
+    case K1_EXPRESS = 'K1_EXPRESS';
+
+    case CJ_GLS = 'CJ_GLS';
+
+    case MYS_GDEX = 'MYS_GDEX';
+
+    case NATIONEX = 'NATIONEX';
+
+    case ANJUN = 'ANJUN';
+
+    case FARGOOD = 'FARGOOD';
+
+    case SMG_EXPRESS = 'SMG_EXPRESS';
+
+    case RZYEXPRESS = 'RZYEXPRESS';
+
+    case SEFL = 'SEFL';
+
+    case TNT_CLICK_IT = 'TNT_CLICK_IT';
+
+    case HDB = 'HDB';
+
+    case HIPSHIPPER = 'HIPSHIPPER';
+
+    case RPXLOGISTICS = 'RPXLOGISTICS';
+
+    case KUEHNE = 'KUEHNE';
+
+    case IT_NEXIVE = 'IT_NEXIVE';
+
+    case PTS = 'PTS';
+
+    case SWISS_POST_FTP = 'SWISS_POST_FTP';
+
+    case FASTRK_SERV = 'FASTRK_SERV';
+
+    case _4_72 = '_4_72';
+
+    case US_YRC = 'US_YRC';
+
+    case POSTNL_INTL_3S = 'POSTNL_INTL_3S';
+
+    case ELIAN_POST = 'ELIAN_POST';
+
+    case CUBYN = 'CUBYN';
+
+    case SAU_SAUDI_POST = 'SAU_SAUDI_POST';
+
+    case ABXEXPRESS_MY = 'ABXEXPRESS_MY';
+
+    case HUAHAN_EXPRESS = 'HUAHAN_EXPRESS';
+
+    case IND_JAYONEXPRESS = 'IND_JAYONEXPRESS';
+
+    case ZES_EXPRESS = 'ZES_EXPRESS';
+
+    case ZEPTO_EXPRESS = 'ZEPTO_EXPRESS';
+
+    case SKYNET_ZA = 'SKYNET_ZA';
+
+    case ZEEK_2_DOOR = 'ZEEK_2_DOOR';
+
+    case BLINKLASTMILE = 'BLINKLASTMILE';
+
+    case POSTA_UKR = 'POSTA_UKR';
+
+    case CHROBINSON = 'CHROBINSON';
+
+    case CN_POST56 = 'CN_POST56';
+
+    case COURANT_PLUS = 'COURANT_PLUS';
+
+    case SCUDEX_EXPRESS = 'SCUDEX_EXPRESS';
+
+    case SHIPENTEGRA = 'SHIPENTEGRA';
+
+    case B_TWO_C_EUROPE = 'B_TWO_C_EUROPE';
+
+    case COPE = 'COPE';
+
+    case IND_GATI = 'IND_GATI';
+
+    case CN_WISHPOST = 'CN_WISHPOST';
+
+    case NACEX_ES = 'NACEX_ES';
+
+    case TAQBIN_HK = 'TAQBIN_HK';
+
+    case GLOBALTRANZ = 'GLOBALTRANZ';
+
+    case HKD = 'HKD';
+
+    case BJSHOMEDELIVERY = 'BJSHOMEDELIVERY';
+
+    case OMNIVA = 'OMNIVA';
+
+    case SUTTON = 'SUTTON';
+
+    case PANTHER_REFERENCE = 'PANTHER_REFERENCE';
+
+    case SFCSERVICE = 'SFCSERVICE';
+
+    case LTL = 'LTL';
+
+    case PARKNPARCEL = 'PARKNPARCEL';
+
+    case SPRING_GDS = 'SPRING_GDS';
+
+    case ECEXPRESS = 'ECEXPRESS';
+
+    case INTERPARCEL_AU = 'INTERPARCEL_AU';
+
+    case AGILITY = 'AGILITY';
+
+    case XL_EXPRESS = 'XL_EXPRESS';
+
+    case ADERONLINE = 'ADERONLINE';
+
+    case DIRECTCOURIERS = 'DIRECTCOURIERS';
+
+    case PLANZER = 'PLANZER';
+
+    case SENDING = 'SENDING';
+
+    case NINJAVAN_WB = 'NINJAVAN_WB';
+
+    case NATIONWIDE_MY = 'NATIONWIDE_MY';
+
+    case SENDIT = 'SENDIT';
+
+    case GB_ARROW = 'GB_ARROW';
+
+    case IND_GOJAVAS = 'IND_GOJAVAS';
+
+    case KPOST = 'KPOST';
+
+    case DHL_FREIGHT = 'DHL_FREIGHT';
+
+    case BLUECARE = 'BLUECARE';
+
+    case JINDOUYUN = 'JINDOUYUN';
+
+    case TRACKON = 'TRACKON';
+
+    case GB_TUFFNELLS = 'GB_TUFFNELLS';
+
+    case TRUMPCARD = 'TRUMPCARD';
+
+    case ETOTAL = 'ETOTAL';
+
+    case SFPLUS_WEBHOOK = 'SFPLUS_WEBHOOK';
+
+    case SEKOLOGISTICS = 'SEKOLOGISTICS';
+
+    case HERMES_2MANN_HANDLING = 'HERMES_2MANN_HANDLING';
+
+    case DPD_LOCAL_REF = 'DPD_LOCAL_REF';
+
+    case UDS = 'UDS';
+
+    case ZA_SPECIALISED_FREIGHT = 'ZA_SPECIALISED_FREIGHT';
+
+    case THA_KERRY = 'THA_KERRY';
+
+    case PRT_INT_SEUR = 'PRT_INT_SEUR';
+
+    case BRA_CORREIOS = 'BRA_CORREIOS';
+
+    case NZ_NZ_POST = 'NZ_NZ_POST';
+
+    case CN_EQUICK = 'CN_EQUICK';
+
+    case MYS_EMS = 'MYS_EMS';
+
+    case GB_NORSK = 'GB_NORSK';
+
+    case ESP_MRW = 'ESP_MRW';
+
+    case ESP_PACKLINK = 'ESP_PACKLINK';
+
+    case KANGAROO_MY = 'KANGAROO_MY';
+
+    case RPX = 'RPX';
+
+    case XDP_UK_REFERENCE = 'XDP_UK_REFERENCE';
+
+    case NINJAVAN_MY = 'NINJAVAN_MY';
+
+    case ADICIONAL = 'ADICIONAL';
+
+    case NINJAVAN_ID = 'NINJAVAN_ID';
+
+    case ROADBULL = 'ROADBULL';
+
+    case YAKIT = 'YAKIT';
+
+    case MAILAMERICAS = 'MAILAMERICAS';
+
+    case MIKROPAKKET = 'MIKROPAKKET';
+
+    case DYNALOGIC = 'DYNALOGIC';
+
+    case DHL_ES = 'DHL_ES';
+
+    case DHL_PARCEL_NL = 'DHL_PARCEL_NL';
+
+    case DHL_GLOBAL_MAIL_ASIA = 'DHL_GLOBAL_MAIL_ASIA';
+
+    case DAWN_WING = 'DAWN_WING';
+
+    case GENIKI_GR = 'GENIKI_GR';
+
+    case HERMESWORLD_UK = 'HERMESWORLD_UK';
+
+    case ALPHAFAST = 'ALPHAFAST';
+
+    case BUYLOGIC = 'BUYLOGIC';
+
+    case EKART = 'EKART';
+
+    case MEX_SENDA = 'MEX_SENDA';
+
+    case SFC_LOGISTICS = 'SFC_LOGISTICS';
+
+    case POST_SERBIA = 'POST_SERBIA';
+
+    case IND_DELHIVERY = 'IND_DELHIVERY';
+
+    case DE_DPD_DELISTRACK = 'DE_DPD_DELISTRACK';
+
+    case RPD2MAN = 'RPD2MAN';
+
+    case CN_SF_EXPRESS = 'CN_SF_EXPRESS';
+
+    case YANWEN = 'YANWEN';
+
+    case MYS_SKYNET = 'MYS_SKYNET';
+
+    case CORREOS_DE_MEXICO = 'CORREOS_DE_MEXICO';
+
+    case CBL_LOGISTICA = 'CBL_LOGISTICA';
+
+    case MEX_ESTAFETA = 'MEX_ESTAFETA';
+
+    case AU_AUSTRIAN_POST = 'AU_AUSTRIAN_POST';
+
+    case RINCOS = 'RINCOS';
+
+    case NLD_DHL = 'NLD_DHL';
+
+    case RUSSIAN_POST = 'RUSSIAN_POST';
+
+    case COURIERS_PLEASE = 'COURIERS_PLEASE';
+
+    case POSTNORD_LOGISTICS = 'POSTNORD_LOGISTICS';
+
+    case FEDEX = 'FEDEX';
+
+    case DPE_EXPRESS = 'DPE_EXPRESS';
+
+    case DPD = 'DPD';
+
+    case ADSONE = 'ADSONE';
+
+    case IDN_JNE = 'IDN_JNE';
+
+    case THECOURIERGUY = 'THECOURIERGUY';
+
+    case CNEXPS = 'CNEXPS';
+
+    case PRT_CHRONOPOST = 'PRT_CHRONOPOST';
+
+    case LANDMARK_GLOBAL = 'LANDMARK_GLOBAL';
+
+    case IT_DHL_ECOMMERCE = 'IT_DHL_ECOMMERCE';
+
+    case ESP_NACEX = 'ESP_NACEX';
+
+    case PRT_CTT = 'PRT_CTT';
+
+    case BE_KIALA = 'BE_KIALA';
+
+    case ASENDIA_UK = 'ASENDIA_UK';
+
+    case GLOBAL_TNT = 'GLOBAL_TNT';
+
+    case POSTUR_IS = 'POSTUR_IS';
+
+    case EPARCEL_KR = 'EPARCEL_KR';
+
+    case INPOST_PACZKOMATY = 'INPOST_PACZKOMATY';
+
+    case IT_POSTE_ITALIA = 'IT_POSTE_ITALIA';
+
+    case BE_BPOST = 'BE_BPOST';
+
+    case PL_POCZTA_POLSKA = 'PL_POCZTA_POLSKA';
+
+    case MYS_MYS_POST = 'MYS_MYS_POST';
+
+    case SG_SG_POST = 'SG_SG_POST';
+
+    case THA_THAILAND_POST = 'THA_THAILAND_POST';
+
+    case LEXSHIP = 'LEXSHIP';
+
+    case FASTWAY_NZ = 'FASTWAY_NZ';
+
+    case DHL_AU = 'DHL_AU';
+
+    case COSTMETICSNOW = 'COSTMETICSNOW';
+
+    case PFLOGISTICS = 'PFLOGISTICS';
+
+    case LOOMIS_EXPRESS = 'LOOMIS_EXPRESS';
+
+    case GLS_ITALY = 'GLS_ITALY';
+
+    case LINE = 'LINE';
+
+    case GEL_EXPRESS = 'GEL_EXPRESS';
+
+    case HUODULL = 'HUODULL';
+
+    case NINJAVAN_SG = 'NINJAVAN_SG';
+
+    case JANIO = 'JANIO';
+
+    case AO_COURIER = 'AO_COURIER';
+
+    case BRT_IT_SENDER_REF = 'BRT_IT_SENDER_REF';
+
+    case SAILPOST = 'SAILPOST';
+
+    case LALAMOVE = 'LALAMOVE';
+
+    case NEWZEALAND_COURIERS = 'NEWZEALAND_COURIERS';
+
+    case ETOMARS = 'ETOMARS';
+
+    case VIRTRANSPORT = 'VIRTRANSPORT';
+
+    case WIZMO = 'WIZMO';
+
+    case PALLETWAYS = 'PALLETWAYS';
+
+    case I_DIKA = 'I_DIKA';
+
+    case CFL_LOGISTICS = 'CFL_LOGISTICS';
+
+    case GEMWORLDWIDE = 'GEMWORLDWIDE';
+
+    case GLOBAL_EXPRESS = 'GLOBAL_EXPRESS';
+
+    case LOGISTYX_TRANSGROUP = 'LOGISTYX_TRANSGROUP';
+
+    case WESTBANK_COURIER = 'WESTBANK_COURIER';
+
+    case ARCO_SPEDIZIONI = 'ARCO_SPEDIZIONI';
+
+    case YDH_EXPRESS = 'YDH_EXPRESS';
+
+    case PARCELINKLOGISTICS = 'PARCELINKLOGISTICS';
+
+    case CNDEXPRESS = 'CNDEXPRESS';
+
+    case NOX_NIGHT_TIME_EXPRESS = 'NOX_NIGHT_TIME_EXPRESS';
+
+    case AERONET = 'AERONET';
+
+    case LTIANEXP = 'LTIANEXP';
+
+    case INTEGRA2_FTP = 'INTEGRA2_FTP';
+
+    case PARCELONE = 'PARCELONE';
+
+    case NOX_NACHTEXPRESS = 'NOX_NACHTEXPRESS';
+
+    case CN_CHINA_POST_EMS = 'CN_CHINA_POST_EMS';
+
+    case CHUKOU1 = 'CHUKOU1';
+
+    case GLS_SLOV = 'GLS_SLOV';
+
+    case ORANGE_DS = 'ORANGE_DS';
+
+    case JOOM_LOGIS = 'JOOM_LOGIS';
+
+    case AUS_STARTRACK = 'AUS_STARTRACK';
+
+    case DHL = 'DHL';
+
+    case GB_APC = 'GB_APC';
+
+    case BONDSCOURIERS = 'BONDSCOURIERS';
+
+    case JPN_JAPAN_POST = 'JPN_JAPAN_POST';
+
+    case USPS = 'USPS';
+
+    case WINIT = 'WINIT';
+
+    case ARG_OCA = 'ARG_OCA';
+
+    case TW_TAIWAN_POST = 'TW_TAIWAN_POST';
+
+    case DMM_NETWORK = 'DMM_NETWORK';
+
+    case TNT = 'TNT';
+
+    case BH_POSTA = 'BH_POSTA';
+
+    case SWE_POSTNORD = 'SWE_POSTNORD';
+
+    case CA_CANADA_POST = 'CA_CANADA_POST';
+
+    case WISELOADS = 'WISELOADS';
+
+    case ASENDIA_HK = 'ASENDIA_HK';
+
+    case NLD_GLS = 'NLD_GLS';
+
+    case MEX_REDPACK = 'MEX_REDPACK';
+
+    case JET_SHIP = 'JET_SHIP';
+
+    case DE_DHL_EXPRESS = 'DE_DHL_EXPRESS';
+
+    case NINJAVAN_THAI = 'NINJAVAN_THAI';
+
+    case RABEN_GROUP = 'RABEN_GROUP';
+
+    case ESP_ASM = 'ESP_ASM';
+
+    case HRV_HRVATSKA = 'HRV_HRVATSKA';
+
+    case GLOBAL_ESTES = 'GLOBAL_ESTES';
+
+    case LTU_LIETUVOS = 'LTU_LIETUVOS';
+
+    case BEL_DHL = 'BEL_DHL';
+
+    case AU_AU_POST = 'AU_AU_POST';
+
+    case SPEEDEXCOURIER = 'SPEEDEXCOURIER';
+
+    case FR_COLIS = 'FR_COLIS';
+
+    case ARAMEX = 'ARAMEX';
+
+    case DPEX = 'DPEX';
+
+    case MYS_AIRPAK = 'MYS_AIRPAK';
+
+    case CUCKOOEXPRESS = 'CUCKOOEXPRESS';
+
+    case DPD_POLAND = 'DPD_POLAND';
+
+    case NLD_POSTNL = 'NLD_POSTNL';
+
+    case NIM_EXPRESS = 'NIM_EXPRESS';
+
+    case QUANTIUM = 'QUANTIUM';
+
+    case SENDLE = 'SENDLE';
+
+    case ESP_REDUR = 'ESP_REDUR';
+
+    case MATKAHUOLTO = 'MATKAHUOLTO';
+
+    case CPACKET = 'CPACKET';
+
+    case POSTI = 'POSTI';
+
+    case HUNTER_EXPRESS = 'HUNTER_EXPRESS';
+
+    case CHOIR_EXP = 'CHOIR_EXP';
+
+    case LEGION_EXPRESS = 'LEGION_EXPRESS';
+
+    case AUSTRIAN_POST_EXPRESS = 'AUSTRIAN_POST_EXPRESS';
+
+    case GRUPO = 'GRUPO';
+
+    case POSTA_RO = 'POSTA_RO';
+
+    case INTERPARCEL_UK = 'INTERPARCEL_UK';
+
+    case GLOBAL_ABF = 'GLOBAL_ABF';
+
+    case POSTEN_NORGE = 'POSTEN_NORGE';
+
+    case XPERT_DELIVERY = 'XPERT_DELIVERY';
+
+    case DHL_REFR = 'DHL_REFR';
+
+    case DHL_HK = 'DHL_HK';
+
+    case SKYNET_UAE = 'SKYNET_UAE';
+
+    case GOJEK = 'GOJEK';
+
+    case YODEL_INTNL = 'YODEL_INTNL';
+
+    case JANCO = 'JANCO';
+
+    case YTO = 'YTO';
+
+    case WISE_EXPRESS = 'WISE_EXPRESS';
+
+    case JTEXPRESS_VN = 'JTEXPRESS_VN';
+
+    case FEDEX_INTL_MLSERV = 'FEDEX_INTL_MLSERV';
+
+    case VAMOX = 'VAMOX';
+
+    case AMS_GRP = 'AMS_GRP';
+
+    case DHL_JP = 'DHL_JP';
+
+    case HRPARCEL = 'HRPARCEL';
+
+    case GESWL = 'GESWL';
+
+    case BLUESTAR = 'BLUESTAR';
+
+    case CDEK_TR = 'CDEK_TR';
+
+    case DESCARTES = 'DESCARTES';
+
+    case DELTEC_UK = 'DELTEC_UK';
+
+    case DTDC_EXPRESS = 'DTDC_EXPRESS';
+
+    case TOURLINE = 'TOURLINE';
+
+    case BH_WORLDWIDE = 'BH_WORLDWIDE';
+
+    case OCS = 'OCS';
+
+    case YINGNUO_LOGISTICS = 'YINGNUO_LOGISTICS';
+
+    case UPS = 'UPS';
+
+    case TOLL = 'TOLL';
+
+    case PRT_SEUR = 'PRT_SEUR';
+
+    case DTDC_AU = 'DTDC_AU';
+
+    case THA_DYNAMIC_LOGISTICS = 'THA_DYNAMIC_LOGISTICS';
+
+    case UBI_LOGISTICS = 'UBI_LOGISTICS';
+
+    case FEDEX_CROSSBORDER = 'FEDEX_CROSSBORDER';
+
+    case A1POST = 'A1POST';
+
+    case TAZMANIAN_FREIGHT = 'TAZMANIAN_FREIGHT';
+
+    case CJ_INT_MY = 'CJ_INT_MY';
+
+    case SAIA_FREIGHT = 'SAIA_FREIGHT';
+
+    case SG_QXPRESS = 'SG_QXPRESS';
+
+    case NHANS_SOLUTIONS = 'NHANS_SOLUTIONS';
+
+    case DPD_FR = 'DPD_FR';
+
+    case COORDINADORA = 'COORDINADORA';
+
+    case ANDREANI = 'ANDREANI';
+
+    case DOORA = 'DOORA';
+
+    case INTERPARCEL_NZ = 'INTERPARCEL_NZ';
+
+    case PHL_JAMEXPRESS = 'PHL_JAMEXPRESS';
+
+    case BEL_BELGIUM_POST = 'BEL_BELGIUM_POST';
+
+    case US_APC = 'US_APC';
+
+    case IDN_POS = 'IDN_POS';
+
+    case FR_MONDIAL = 'FR_MONDIAL';
+
+    case DE_DHL = 'DE_DHL';
+
+    case HK_RPX = 'HK_RPX';
+
+    case DHL_PIECEID = 'DHL_PIECEID';
+
+    case VNPOST_EMS = 'VNPOST_EMS';
+
+    case RRDONNELLEY = 'RRDONNELLEY';
+
+    case DPD_DE = 'DPD_DE';
+
+    case DELCART_IN = 'DELCART_IN';
+
+    case IMEXGLOBALSOLUTIONS = 'IMEXGLOBALSOLUTIONS';
+
+    case ACOMMERCE = 'ACOMMERCE';
+
+    case EURODIS = 'EURODIS';
+
+    case CANPAR = 'CANPAR';
+
+    case GLS = 'GLS';
+
+    case IND_ECOM = 'IND_ECOM';
+
+    case ESP_ENVIALIA = 'ESP_ENVIALIA';
+
+    case DHL_UK = 'DHL_UK';
+
+    case SMSA_EXPRESS = 'SMSA_EXPRESS';
+
+    case TNT_FR = 'TNT_FR';
+
+    case DEX_I = 'DEX_I';
+
+    case BUDBEE_WEBHOOK = 'BUDBEE_WEBHOOK';
+
+    case COPA_COURIER = 'COPA_COURIER';
+
+    case VNM_VIETNAM_POST = 'VNM_VIETNAM_POST';
+
+    case DPD_HK = 'DPD_HK';
+
+    case TOLL_NZ = 'TOLL_NZ';
+
+    case ECHO_ = 'ECHO';
+
+    case FEDEX_FR = 'FEDEX_FR';
+
+    case BORDEREXPRESS = 'BORDEREXPRESS';
+
+    case MAILPLUS_JPN = 'MAILPLUS_JPN';
+
+    case TNT_UK_REFR = 'TNT_UK_REFR';
+
+    case KEC = 'KEC';
+
+    case DPD_RO = 'DPD_RO';
+
+    case TNT_JP = 'TNT_JP';
+
+    case TH_CJ = 'TH_CJ';
+
+    case EC_CN = 'EC_CN';
+
+    case FASTWAY_UK = 'FASTWAY_UK';
+
+    case FASTWAY_US = 'FASTWAY_US';
+
+    case GLS_DE = 'GLS_DE';
+
+    case GLS_ES = 'GLS_ES';
+
+    case GLS_FR = 'GLS_FR';
+
+    case MONDIAL_BE = 'MONDIAL_BE';
+
+    case SGT_IT = 'SGT_IT';
+
+    case TNT_CN = 'TNT_CN';
+
+    case TNT_DE = 'TNT_DE';
+
+    case TNT_ES = 'TNT_ES';
+
+    case TNT_PL = 'TNT_PL';
+
+    case PARCELFORCE = 'PARCELFORCE';
+
+    case SWISS_POST = 'SWISS_POST';
+
+    case TOLL_IPEC = 'TOLL_IPEC';
+
+    case AIR_21 = 'AIR_21';
+
+    case AIRSPEED = 'AIRSPEED';
+
+    case BERT = 'BERT';
+
+    case BLUEDART = 'BLUEDART';
+
+    case COLLECTPLUS = 'COLLECTPLUS';
+
+    case COURIERPLUS = 'COURIERPLUS';
+
+    case COURIER_POST = 'COURIER_POST';
+
+    case DHL_GLOBAL_MAIL = 'DHL_GLOBAL_MAIL';
+
+    case DPD_UK = 'DPD_UK';
+
+    case DELTEC_DE = 'DELTEC_DE';
+
+    case DEUTSCHE_DE = 'DEUTSCHE_DE';
+
+    case DOTZOT = 'DOTZOT';
+
+    case ELTA_GR = 'ELTA_GR';
+
+    case EMS_CN = 'EMS_CN';
+
+    case ECARGO = 'ECARGO';
+
+    case ENSENDA = 'ENSENDA';
+
+    case FERCAM_IT = 'FERCAM_IT';
+
+    case FASTWAY_ZA = 'FASTWAY_ZA';
+
+    case FASTWAY_AU = 'FASTWAY_AU';
+
+    case FIRST_LOGISITCS = 'FIRST_LOGISITCS';
+
+    case GEODIS = 'GEODIS';
+
+    case GLOBEGISTICS = 'GLOBEGISTICS';
+
+    case GREYHOUND = 'GREYHOUND';
+
+    case JETSHIP_MY = 'JETSHIP_MY';
+
+    case LION_PARCEL = 'LION_PARCEL';
+
+    case AEROFLASH = 'AEROFLASH';
+
+    case ONTRAC = 'ONTRAC';
+
+    case SAGAWA = 'SAGAWA';
+
+    case SIODEMKA = 'SIODEMKA';
+
+    case STARTRACK = 'STARTRACK';
+
+    case TNT_AU = 'TNT_AU';
+
+    case TNT_IT = 'TNT_IT';
+
+    case TRANSMISSION = 'TRANSMISSION';
+
+    case YAMATO = 'YAMATO';
+
+    case DHL_IT = 'DHL_IT';
+
+    case DHL_AT = 'DHL_AT';
+
+    case LOGISTICSWORLDWIDE_KR = 'LOGISTICSWORLDWIDE_KR';
+
+    case GLS_SPAIN = 'GLS_SPAIN';
+
+    case AMAZON_UK_API = 'AMAZON_UK_API';
+
+    case DPD_FR_REFERENCE = 'DPD_FR_REFERENCE';
+
+    case DHLPARCEL_UK = 'DHLPARCEL_UK';
+
+    case MEGASAVE = 'MEGASAVE';
+
+    case QUALITYPOST = 'QUALITYPOST';
+
+    case IDS_LOGISTICS = 'IDS_LOGISTICS';
+
+    case JOYINGBOX1 = 'JOYINGBOX';
+
+    case PANTHER_ORDER_NUMBER = 'PANTHER_ORDER_NUMBER';
+
+    case WATKINS_SHEPARD = 'WATKINS_SHEPARD';
+
+    case FASTTRACK = 'FASTTRACK';
+
+    case UP_EXPRESS = 'UP_EXPRESS';
+
+    case ELOGISTICA = 'ELOGISTICA';
+
+    case ECOURIER = 'ECOURIER';
+
+    case CJ_PHILIPPINES = 'CJ_PHILIPPINES';
+
+    case SPEEDEX = 'SPEEDEX';
+
+    case ORANGECONNEX = 'ORANGECONNEX';
+
+    case TECOR = 'TECOR';
+
+    case SAEE = 'SAEE';
+
+    case GLS_ITALY_FTP = 'GLS_ITALY_FTP';
+
+    case DELIVERE = 'DELIVERE';
+
+    case YYCOM = 'YYCOM';
+
+    case ADICIONAL_PT = 'ADICIONAL_PT';
+
+    case DKSH = 'DKSH';
+
+    case NIPPON_EXPRESS_FTP = 'NIPPON_EXPRESS_FTP';
+
+    case GOLS = 'GOLS';
+
+    case FUJEXP = 'FUJEXP';
+
+    case QTRACK = 'QTRACK';
+
+    case OMLOGISTICS_API = 'OMLOGISTICS_API';
+
+    case GDPHARM = 'GDPHARM';
+
+    case MISUMI_CN = 'MISUMI_CN';
+
+    case AIR_CANADA = 'AIR_CANADA';
+
+    case CITY56_WEBHOOK = 'CITY56_WEBHOOK';
+
+    case SAGAWA_API = 'SAGAWA_API';
+
+    case KEDAEX = 'KEDAEX';
+
+    case PGEON_API = 'PGEON_API';
+
+    case WEWORLDEXPRESS = 'WEWORLDEXPRESS';
+
+    case JT_LOGISTICS = 'JT_LOGISTICS';
+
+    case TRUSK = 'TRUSK';
+
+    case VIAXPRESS = 'VIAXPRESS';
+
+    case DHL_SUPPLYCHAIN_ID = 'DHL_SUPPLYCHAIN_ID';
+
+    case ZUELLIGPHARMA_SFTP = 'ZUELLIGPHARMA_SFTP';
+
+    case MEEST = 'MEEST';
+
+    case TOLL_PRIORITY = 'TOLL_PRIORITY';
+
+    case MOTHERSHIP_API = 'MOTHERSHIP_API';
+
+    case CAPITAL = 'CAPITAL';
+
+    case EUROPAKET_API = 'EUROPAKET_API';
+
+    case HFD = 'HFD';
+
+    case TOURLINE_REFERENCE = 'TOURLINE_REFERENCE';
+
+    case GIO_ECOURIER = 'GIO_ECOURIER';
+
+    case CN_LOGISTICS = 'CN_LOGISTICS';
+
+    case PANDION = 'PANDION';
+
+    case BPOST_API = 'BPOST_API';
+
+    case PASSPORTSHIPPING = 'PASSPORTSHIPPING';
+
+    case PAKAJO = 'PAKAJO';
+
+    case DACHSER = 'DACHSER';
+
+    case YUSEN_SFTP = 'YUSEN_SFTP';
+
+    case SHYPLITE = 'SHYPLITE';
+
+    case XYY = 'XYY';
+
+    case MWD = 'MWD';
+
+    case FAXECARGO = 'FAXECARGO';
+
+    case MAZET = 'MAZET';
+
+    case FIRST_LOGISTICS_API = 'FIRST_LOGISTICS_API';
+
+    case SPRINT_PACK = 'SPRINT_PACK';
+
+    case HERMES_DE_FTP = 'HERMES_DE_FTP';
+
+    case CONCISE = 'CONCISE';
+
+    case KERRY_EXPRESS_TW_API = 'KERRY_EXPRESS_TW_API';
+
+    case EWE = 'EWE';
+
+    case FASTDESPATCH = 'FASTDESPATCH';
+
+    case ABCUSTOM_SFTP = 'ABCUSTOM_SFTP';
+
+    case CHAZKI = 'CHAZKI';
+
+    case SHIPPIE = 'SHIPPIE';
+
+    case GEODIS_API = 'GEODIS_API';
+
+    case NAQEL_EXPRESS = 'NAQEL_EXPRESS';
+
+    case PAPA_WEBHOOK = 'PAPA_WEBHOOK';
+
+    case FORWARDAIR = 'FORWARDAIR';
+
+    case DIALOGO_LOGISTICA_API = 'DIALOGO_LOGISTICA_API';
+
+    case LALAMOVE_API = 'LALAMOVE_API';
+
+    case TOMYDOOR = 'TOMYDOOR';
+
+    case KRONOS_WEBHOOK = 'KRONOS_WEBHOOK';
+
+    case JTCARGO = 'JTCARGO';
+
+    case T_CAT = 'T_CAT';
+
+    case CONCISE_WEBHOOK = 'CONCISE_WEBHOOK';
+
+    case TELEPORT_WEBHOOK = 'TELEPORT_WEBHOOK';
+
+    case CUSTOMCO_API = 'CUSTOMCO_API';
+
+    case SPX_TH = 'SPX_TH';
+
+    case BOLLORE_LOGISTICS = 'BOLLORE_LOGISTICS';
+
+    case CLICKLINK_SFTP = 'CLICKLINK_SFTP';
+
+    case M3LOGISTICS = 'M3LOGISTICS';
+
+    case VNPOST_API = 'VNPOST_API';
+
+    case AXLEHIRE_FTP = 'AXLEHIRE_FTP';
+
+    case SHADOWFAX = 'SHADOWFAX';
+
+    case MYHERMES_UK_API = 'MYHERMES_UK_API';
+
+    case DAIICHI = 'DAIICHI';
+
+    case MENSAJEROSURBANOS_API = 'MENSAJEROSURBANOS_API';
+
+    case POLARSPEED = 'POLARSPEED';
+
+    case IDEXPRESS_ID = 'IDEXPRESS_ID';
+
+    case PAYO = 'PAYO';
+
+    case WHISTL_SFTP = 'WHISTL_SFTP';
+
+    case INTEX_DE = 'INTEX_DE';
+
+    case TRANS2U = 'TRANS2U';
+
+    case PRODUCTCAREGROUP_SFTP = 'PRODUCTCAREGROUP_SFTP';
+
+    case BIGSMART = 'BIGSMART';
+
+    case EXPEDITORS_API_REF = 'EXPEDITORS_API_REF';
+
+    case AITWORLDWIDE_API = 'AITWORLDWIDE_API';
+
+    case WORLDCOURIER = 'WORLDCOURIER';
+
+    case QUIQUP = 'QUIQUP';
+
+    case AGEDISS_SFTP = 'AGEDISS_SFTP';
+
+    case ANDREANI_API = 'ANDREANI_API';
+
+    case CRLEXPRESS = 'CRLEXPRESS';
+
+    case SMARTCAT = 'SMARTCAT';
+
+    case CROSSFLIGHT = 'CROSSFLIGHT';
+
+    case PROCARRIER = 'PROCARRIER';
+
+    case DHL_REFERENCE_API = 'DHL_REFERENCE_API';
+
+    case SEINO_API = 'SEINO_API';
+
+    case WSPEXPRESS = 'WSPEXPRESS';
+
+    case KRONOS = 'KRONOS';
+
+    case TOTAL_EXPRESS_API = 'TOTAL_EXPRESS_API';
+
+    case PARCLL = 'PARCLL';
+
+    case XPEDIGO = 'XPEDIGO';
+
+    case STAR_TRACK_WEBHOOK = 'STAR_TRACK_WEBHOOK';
+
+    case GPOST = 'GPOST';
+
+    case UCS = 'UCS';
+
+    case DMFGROUP = 'DMFGROUP';
+
+    case COORDINADORA_API = 'COORDINADORA_API';
+
+    case MARKEN = 'MARKEN';
+
+    case NTL = 'NTL';
+
+    case REDJEPAKKETJE = 'REDJEPAKKETJE';
+
+    case ALLIED_EXPRESS_FTP = 'ALLIED_EXPRESS_FTP';
+
+    case MONDIALRELAY_ES = 'MONDIALRELAY_ES';
+
+    case NAEKO_FTP = 'NAEKO_FTP';
+
+    case MHI = 'MHI';
+
+    case SHIPPIFY = 'SHIPPIFY';
+
+    case MALCA_AMIT_API = 'MALCA_AMIT_API';
+
+    case JTEXPRESS_SG_API = 'JTEXPRESS_SG_API';
+
+    case DACHSER_WEB = 'DACHSER_WEB';
+
+    case FLIGHTLG = 'FLIGHTLG';
+
+    case CAGO = 'CAGO';
+
+    case COM1EXPRESS = 'COM1EXPRESS';
+
+    case TONAMI_FTP = 'TONAMI_FTP';
+
+    case PACKFLEET = 'PACKFLEET';
+
+    case PUROLATOR_INTERNATIONAL = 'PUROLATOR_INTERNATIONAL';
+
+    case WINESHIPPING_WEBHOOK = 'WINESHIPPING_WEBHOOK';
+
+    case DHL_ES_SFTP = 'DHL_ES_SFTP';
+
+    case PCHOME_API = 'PCHOME_API';
+
+    case CESKAPOSTA_API = 'CESKAPOSTA_API';
+
+    case GORUSH = 'GORUSH';
+
+    case HOMERUNNER = 'HOMERUNNER';
+
+    case AMAZON_ORDER = 'AMAZON_ORDER';
+
+    case EFWNOW_API = 'EFWNOW_API';
+
+    case CBL_LOGISTICA_API = 'CBL_LOGISTICA_API';
+
+    case NIMBUSPOST = 'NIMBUSPOST';
+
+    case LOGWIN_LOGISTICS = 'LOGWIN_LOGISTICS';
+
+    case NOWLOG_API = 'NOWLOG_API';
+
+    case DPD_NL = 'DPD_NL';
+
+    case GODEPENDABLE = 'GODEPENDABLE';
+
+    case ESDEX = 'ESDEX';
+
+    case LOGISYSTEMS_SFTP = 'LOGISYSTEMS_SFTP';
+
+    case EXPEDITORS = 'EXPEDITORS';
+
+    case SNTGLOBAL_API = 'SNTGLOBAL_API';
+
+    case SHIPX = 'SHIPX';
+
+    case QINTL_API = 'QINTL_API';
+
+    case PACKS = 'PACKS';
+
+    case POSTNL_INTERNATIONAL = 'POSTNL_INTERNATIONAL';
+
+    case AMAZON_EMAIL_PUSH = 'AMAZON_EMAIL_PUSH';
+
+    case DHL_API = 'DHL_API';
+
+    case SPX = 'SPX';
+
+    case AXLEHIRE = 'AXLEHIRE';
+
+    case ICSCOURIER = 'ICSCOURIER';
+
+    case DIALOGO_LOGISTICA = 'DIALOGO_LOGISTICA';
+
+    case SHUNBANG_EXPRESS = 'SHUNBANG_EXPRESS';
+
+    case TCS_API = 'TCS_API';
+
+    case SF_EXPRESS_CN = 'SF_EXPRESS_CN';
+
+    case PACKETA = 'PACKETA';
+
+    case SIC_TELIWAY = 'SIC_TELIWAY';
+
+    case MONDIALRELAY_FR = 'MONDIALRELAY_FR';
+
+    case INTIME_FTP = 'INTIME_FTP';
+
+    case JD_EXPRESS = 'JD_EXPRESS';
+
+    case FASTBOX = 'FASTBOX';
+
+    case PATHEON = 'PATHEON';
+
+    case INDIA_POST = 'INDIA_POST';
+
+    case TIPSA_REF = 'TIPSA_REF';
+
+    case ECOFREIGHT = 'ECOFREIGHT';
+
+    case VOX = 'VOX';
+
+    case DIRECTFREIGHT_AU_REF = 'DIRECTFREIGHT_AU_REF';
+
+    case BESTTRANSPORT_SFTP = 'BESTTRANSPORT_SFTP';
+
+    case AUSTRALIA_POST_API = 'AUSTRALIA_POST_API';
+
+    case FRAGILEPAK_SFTP = 'FRAGILEPAK_SFTP';
+
+    case FLIPXP = 'FLIPXP';
+
+    case VALUE_WEBHOOK = 'VALUE_WEBHOOK';
+
+    case DAESHIN = 'DAESHIN';
+
+    case SHERPA = 'SHERPA';
+
+    case MWD_API = 'MWD_API';
+
+    case SMARTKARGO = 'SMARTKARGO';
+
+    case DNJ_EXPRESS = 'DNJ_EXPRESS';
+
+    case GOPEOPLE = 'GOPEOPLE';
+
+    case MYSENDLE_API = 'MYSENDLE_API';
+
+    case ARAMEX_API = 'ARAMEX_API';
+
+    case PIDGE = 'PIDGE';
+
+    case THAIPARCELS = 'THAIPARCELS';
+
+    case PANTHER_REFERENCE_API = 'PANTHER_REFERENCE_API';
+
+    case POSTAPLUS1 = 'POSTAPLUS';
+
+    case BUFFALO = 'BUFFALO';
+
+    case U_ENVIOS = 'U_ENVIOS';
+
+    case ELITE_CO = 'ELITE_CO';
+
+    case BARQEXP = 'BARQEXP';
+
+    case ROCHE_INTERNAL_SFTP = 'ROCHE_INTERNAL_SFTP';
+
+    case DBSCHENKER_ICELAND = 'DBSCHENKER_ICELAND';
+
+    case TNT_FR_REFERENCE = 'TNT_FR_REFERENCE';
+
+    case NEWGISTICSAPI = 'NEWGISTICSAPI';
+
+    case GLOVO = 'GLOVO';
+
+    case GWLOGIS_API = 'GWLOGIS_API';
+
+    case SPREETAIL_API = 'SPREETAIL_API';
+
+    case MOOVA = 'MOOVA';
+
+    case PLYCONGROUP = 'PLYCONGROUP';
+
+    case USPS_WEBHOOK = 'USPS_WEBHOOK';
+
+    case REIMAGINEDELIVERY = 'REIMAGINEDELIVERY';
+
+    case EDF_FTP = 'EDF_FTP';
+
+    case DAO365 = 'DAO365';
+
+    case BIOCAIR_FTP = 'BIOCAIR_FTP';
+
+    case RANSA_WEBHOOK = 'RANSA_WEBHOOK';
+
+    case SHIPXPRES = 'SHIPXPRES';
+
+    case COURANT_PLUS_API = 'COURANT_PLUS_API';
+
+    case SHIPA = 'SHIPA';
+
+    case HOMELOGISTICS = 'HOMELOGISTICS';
+
+    case DX = 'DX';
+
+    case POSTE_ITALIANE_PACCOCELERE = 'POSTE_ITALIANE_PACCOCELERE';
+
+    case TOLL_WEBHOOK = 'TOLL_WEBHOOK';
+
+    case LCTBR_API = 'LCTBR_API';
+
+    case DX_FREIGHT = 'DX_FREIGHT';
+
+    case DHL_SFTP = 'DHL_SFTP';
+
+    case SHIPROCKET = 'SHIPROCKET';
+
+    case UBER_WEBHOOK = 'UBER_WEBHOOK';
+
+    case STATOVERNIGHT = 'STATOVERNIGHT';
+
+    case BURD = 'BURD';
+
+    case FASTSHIP = 'FASTSHIP';
+
+    case IBVENTURE_WEBHOOK = 'IBVENTURE_WEBHOOK';
+
+    case GATI_KWE_API = 'GATI_KWE_API';
+
+    case CRYOPDP_FTP = 'CRYOPDP_FTP';
+
+    case HUBBED = 'HUBBED';
+
+    case TIPSA_API = 'TIPSA_API';
+
+    case ARASKARGO = 'ARASKARGO';
+
+    case THIJS_NL = 'THIJS_NL';
+
+    case ATSHEALTHCARE_REFERENCE = 'ATSHEALTHCARE_REFERENCE';
+
+    case ENUM_99MINUTOS = '99MINUTOS';
+
+    case HELLENIC_POST = 'HELLENIC_POST';
+
+    case HSM_GLOBAL = 'HSM_GLOBAL';
+
+    case MNX = 'MNX';
+
+    case NMTRANSFER = 'NMTRANSFER';
+
+    case LOGYSTO = 'LOGYSTO';
+
+    case INDIA_POST_INT = 'INDIA_POST_INT';
+
+    case AMAZON_FBA_SWISHIP_IN = 'AMAZON_FBA_SWISHIP_IN';
+
+    case SRT_TRANSPORT = 'SRT_TRANSPORT';
+
+    case BOMI = 'BOMI';
+
+    case DELIVERR_SFTP = 'DELIVERR_SFTP';
+
+    case HSDEXPRESS = 'HSDEXPRESS';
+
+    case SIMPLETIRE_WEBHOOK = 'SIMPLETIRE_WEBHOOK';
+
+    case HUNTER_EXPRESS_SFTP = 'HUNTER_EXPRESS_SFTP';
+
+    case UPS_API = 'UPS_API';
+
+    case WOOYOUNG_LOGISTICS_SFTP = 'WOOYOUNG_LOGISTICS_SFTP';
+
+    case PHSE_API = 'PHSE_API';
+
+    case WISH_EMAIL_PUSH = 'WISH_EMAIL_PUSH';
+
+    case NORTHLINE = 'NORTHLINE';
+
+    case MEDAFRICA = 'MEDAFRICA';
+
+    case DPD_AT_SFTP = 'DPD_AT_SFTP';
+
+    case ANTERAJA = 'ANTERAJA';
+
+    case DHL_GLOBAL_FORWARDING_API = 'DHL_GLOBAL_FORWARDING_API';
+
+    case LBCEXPRESS_API = 'LBCEXPRESS_API';
+
+    case SIMSGLOBAL = 'SIMSGLOBAL';
+
+    case CDLDELIVERS = 'CDLDELIVERS';
+
+    case TYP = 'TYP';
+
+    case TESTING_COURIER_WEBHOOK = 'TESTING_COURIER_WEBHOOK';
+
+    case PANDAGO_API = 'PANDAGO_API';
+
+    case ROYAL_MAIL_FTP = 'ROYAL_MAIL_FTP';
+
+    case THUNDEREXPRESS = 'THUNDEREXPRESS';
+
+    case SECRETLAB_WEBHOOK = 'SECRETLAB_WEBHOOK';
+
+    case SETEL = 'SETEL';
+
+    case JD_WORLDWIDE = 'JD_WORLDWIDE';
+
+    case DPD_RU_API = 'DPD_RU_API';
+
+    case ARGENTS_WEBHOOK = 'ARGENTS_WEBHOOK';
+
+    case POSTONE = 'POSTONE';
+
+    case TUSKLOGISTICS = 'TUSKLOGISTICS';
+
+    case RHENUS_UK_API = 'RHENUS_UK_API';
+
+    case TAQBIN_SG_API = 'TAQBIN_SG_API';
+
+    case INNTRALOG_SFTP = 'INNTRALOG_SFTP';
+
+    case DAYROSS = 'DAYROSS';
+
+    case CORREOSEXPRESS_API = 'CORREOSEXPRESS_API';
+
+    case INTERNATIONAL_SEUR_API = 'INTERNATIONAL_SEUR_API';
+
+    case YODEL_API = 'YODEL_API';
+
+    case HEROEXPRESS = 'HEROEXPRESS';
+
+    case DHL_SUPPLYCHAIN_IN = 'DHL_SUPPLYCHAIN_IN';
+
+    case URGENT_CARGUS = 'URGENT_CARGUS';
+
+    case FRONTDOORCORP = 'FRONTDOORCORP';
+
+    case JTEXPRESS_PH = 'JTEXPRESS_PH';
+
+    case PARCELSTARS_WEBHOOK = 'PARCELSTARS_WEBHOOK';
+
+    case DPD_SK_SFTP = 'DPD_SK_SFTP';
+
+    case MOVIANTO = 'MOVIANTO';
+
+    case OZEPARTS_SHIPPING = 'OZEPARTS_SHIPPING';
+
+    case KARGOMKOLAY = 'KARGOMKOLAY';
+
+    case TRUNKRS = 'TRUNKRS';
+
+    case OMNIRPS_WEBHOOK = 'OMNIRPS_WEBHOOK';
+
+    case CHILEXPRESS = 'CHILEXPRESS';
+
+    case TESTING_COURIER = 'TESTING_COURIER';
+
+    case JNE_API = 'JNE_API';
+
+    case BJSHOMEDELIVERY_FTP = 'BJSHOMEDELIVERY_FTP';
+
+    case DEXPRESS_WEBHOOK = 'DEXPRESS_WEBHOOK';
+
+    case USPS_API = 'USPS_API';
+
+    case TRANSVIRTUAL = 'TRANSVIRTUAL';
+
+    case SOLISTICA_API = 'SOLISTICA_API';
+
+    case CHIENVENTURE_WEBHOOK = 'CHIENVENTURE_WEBHOOK';
+
+    case DPD_UK_SFTP = 'DPD_UK_SFTP';
+
+    case INPOST_UK = 'INPOST_UK';
+
+    case JAVIT = 'JAVIT';
+
+    case ZTO_DOMESTIC = 'ZTO_DOMESTIC';
+
+    case DHL_GT_API = 'DHL_GT_API';
+
+    case CEVA_TRACKING = 'CEVA_TRACKING';
+
+    case KOMON_EXPRESS = 'KOMON_EXPRESS';
+
+    case EASTWESTCOURIER_FTP = 'EASTWESTCOURIER_FTP';
+
+    case DANNIAO = 'DANNIAO';
+
+    case SPECTRAN = 'SPECTRAN';
+
+    case DELIVER_IT = 'DELIVER_IT';
+
+    case RELAISCOLIS = 'RELAISCOLIS';
+
+    case GLS_SPAIN_API = 'GLS_SPAIN_API';
+
+    case POSTPLUS = 'POSTPLUS';
+
+    case AIRTERRA = 'AIRTERRA';
+
+    case GIO_ECOURIER_API = 'GIO_ECOURIER_API';
+
+    case DPD_CH_SFTP = 'DPD_CH_SFTP';
+
+    case FEDEX_API = 'FEDEX_API';
+
+    case INTERSMARTTRANS = 'INTERSMARTTRANS';
+
+    case HERMES_UK_SFTP = 'HERMES_UK_SFTP';
+
+    case EXELOT_FTP = 'EXELOT_FTP';
+
+    case DHL_PA_API = 'DHL_PA_API';
+
+    case VIRTRANSPORT_SFTP = 'VIRTRANSPORT_SFTP';
+
+    case WORLDNET = 'WORLDNET';
+
+    case INSTABOX_WEBHOOK = 'INSTABOX_WEBHOOK';
+
+    case KNG = 'KNG';
+
+    case FLASHEXPRESS_WEBHOOK = 'FLASHEXPRESS_WEBHOOK';
+
+    case MAGYAR_POSTA_API = 'MAGYAR_POSTA_API';
+
+    case WESHIP_API = 'WESHIP_API';
+
+    case OHI_WEBHOOK = 'OHI_WEBHOOK';
+
+    case MUDITA = 'MUDITA';
+
+    case BLUEDART_API = 'BLUEDART_API';
+
+    case T_CAT_API = 'T_CAT_API';
+
+    case ADS = 'ADS';
+
+    case HERMES_IT = 'HERMES_IT';
+
+    case FITZMARK_API = 'FITZMARK_API';
+
+    case POSTI_API = 'POSTI_API';
+
+    case SMSA_EXPRESS_WEBHOOK = 'SMSA_EXPRESS_WEBHOOK';
+
+    case TAMERGROUP_WEBHOOK = 'TAMERGROUP_WEBHOOK';
+
+    case LIVRAPIDE = 'LIVRAPIDE';
+
+    case NIPPON_EXPRESS = 'NIPPON_EXPRESS';
+
+    case BETTERTRUCKS = 'BETTERTRUCKS';
+
+    case FAN = 'FAN';
+
+    case PB_USPSFLATS_FTP = 'PB_USPSFLATS_FTP';
+
+    case PARCELRIGHT = 'PARCELRIGHT';
+
+    case ITHINKLOGISTICS = 'ITHINKLOGISTICS';
+
+    case KERRY_EXPRESS_TH_WEBHOOK = 'KERRY_EXPRESS_TH_WEBHOOK';
+
+    case ECOUTIER = 'ECOUTIER';
+
+    case SHOWL = 'SHOWL';
+
+    case BRT_IT_API = 'BRT_IT_API';
+
+    case RIXONHK_API = 'RIXONHK_API';
+
+    case DBSCHENKER_API = 'DBSCHENKER_API';
+
+    case ILYANGLOGIS = 'ILYANGLOGIS';
+
+    case MAIL_BOX_ETC = 'MAIL_BOX_ETC';
+
+    case WESHIP = 'WESHIP';
+
+    case DHL_GLOBAL_MAIL_API = 'DHL_GLOBAL_MAIL_API';
+
+    case ACTIVOS24_API = 'ACTIVOS24_API';
+
+    case ATSHEALTHCARE = 'ATSHEALTHCARE';
+
+    case LUWJISTIK = 'LUWJISTIK';
+
+    case GW_WORLD = 'GW_WORLD';
+
+    case FAIRSENDEN_API = 'FAIRSENDEN_API';
+
+    case SERVIP_WEBHOOK = 'SERVIP_WEBHOOK';
+
+    case SWISHIP = 'SWISHIP';
+
+    case TANET = 'TANET';
+
+    case HOTSIN_CARGO = 'HOTSIN_CARGO';
+
+    case DIREX = 'DIREX';
+
+    case HUANTONG = 'HUANTONG';
+
+    case IMILE_API = 'IMILE_API';
+
+    case BDMNET = 'BDMNET';
+
+    case AUEXPRESS = 'AUEXPRESS';
+
+    case NYTLOGISTICS = 'NYTLOGISTICS';
+
+    case DSV_REFERENCE = 'DSV_REFERENCE';
+
+    case NOVOFARMA_WEBHOOK = 'NOVOFARMA_WEBHOOK';
+
+    case AITWORLDWIDE_SFTP = 'AITWORLDWIDE_SFTP';
+
+    case SHOPOLIVE = 'SHOPOLIVE';
+
+    case FNF_ZA = 'FNF_ZA';
+
+    case DHL_ECOMMERCE_GC = 'DHL_ECOMMERCE_GC';
+
+    case FETCHR = 'FETCHR';
+
+    case STARLINKS_API = 'STARLINKS_API';
+
+    case YYEXPRESS = 'YYEXPRESS';
+
+    case SERVIENTREGA = 'SERVIENTREGA';
+
+    case HANJIN = 'HANJIN';
+
+    case SPANISH_SEUR_FTP = 'SPANISH_SEUR_FTP';
+
+    case DX_B2B_CONNUM = 'DX_B2B_CONNUM';
+
+    case HELTHJEM_API = 'HELTHJEM_API';
+
+    case INEXPOST = 'INEXPOST';
+
+    case A2B_BA = 'A2B_BA';
+
+    case RHENUS_GROUP = 'RHENUS_GROUP';
+
+    case SBERLOGISTICS_RU = 'SBERLOGISTICS_RU';
+
+    case MALCA_AMIT = 'MALCA_AMIT';
+
+    case PPL = 'PPL';
+
+    case OSM_WORLDWIDE_SFTP = 'OSM_WORLDWIDE_SFTP';
+
+    case ACILOGISTIX = 'ACILOGISTIX';
+
+    case OPTIMACOURIER = 'OPTIMACOURIER';
+
+    case NOVA_POSHTA_API = 'NOVA_POSHTA_API';
+
+    case LOGGI = 'LOGGI';
+
+    case YIFAN = 'YIFAN';
+
+    case MYDYNALOGIC = 'MYDYNALOGIC';
+
+    case MORNINGLOBAL = 'MORNINGLOBAL';
+
+    case CONCISE_API = 'CONCISE_API';
+
+    case FXTRAN = 'FXTRAN';
+
+    case DELIVERYOURPARCEL_ZA = 'DELIVERYOURPARCEL_ZA';
+
+    case UPARCEL = 'UPARCEL';
+
+    case MOBI_BR = 'MOBI_BR';
+
+    case LOGINEXT_WEBHOOK = 'LOGINEXT_WEBHOOK';
+
+    case EMS = 'EMS';
+
+    case SPEEDY = 'SPEEDY';
+}

@@ -12,9 +12,11 @@ class Address implements JsonSerializable
     private ?string $adminArea2;
     private ?string $adminArea1;
     private ?string $postalCode;
+    private string $countryCode;
 
-    public function __construct(private string $countryCode)
+    public function __construct(string $countryCode)
     {
+        $this->countryCode = $countryCode;
         if (strlen($this->countryCode) !== 2) {
             throw new InvalidArgumentException('Country code must be a 2-character ISO 3166-1 code');
         }
@@ -108,5 +110,16 @@ class Address implements JsonSerializable
             $json['postal_code'] = $this->postalCode;
         }
         return $json;
+    }
+
+    public static function fromArray(array $data): self
+    {
+        $address = new self($data['country_code']);
+        $address->setAddressLine1($data['address_line_1'] ?? null);
+        $address->setAddressLine2($data['address_line_2'] ?? null);
+        $address->setAdminArea2($data['admin_area_2'] ?? null);
+        $address->setAdminArea1($data['admin_area_1'] ?? null);
+        $address->setPostalCode($data['postal_code'] ?? null);
+        return $address;
     }
 }

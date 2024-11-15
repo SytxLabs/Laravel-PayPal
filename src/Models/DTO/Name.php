@@ -44,4 +44,12 @@ class Name implements JsonSerializable
         }
         return (!$asArrayWhenEmpty && empty($json)) ? new stdClass() : $json;
     }
+
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            $data['given_name'] ?? null,
+            $data['surname'] ?? null
+        );
+    }
 }

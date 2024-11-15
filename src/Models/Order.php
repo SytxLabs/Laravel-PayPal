@@ -8,10 +8,9 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
-use PaypalServerSdkLib\Models\Builders\OrderBuilder;
-use PaypalServerSdkLib\Models\Order as PayPalOrder;
 use SytxLabs\PayPal\Facades\Accessor\PayPalOrderFacadeAccessor;
 use SytxLabs\PayPal\Facades\PayPal;
+use SytxLabs\PayPal\Models\DTO\Order as PayPalOrder;
 
 /**
  * @property string $order_id
@@ -75,15 +74,14 @@ class Order extends Model
     public function payPalOrder(): Attribute
     {
         return new Attribute(
-            fn () => OrderBuilder::init()
-            ->id($this->order_id)
-            ->intent($this->intent)
-            ->processingInstruction($this->processing_instruction)
-            ->status($this->status)
-            ->links($this->links)
-            ->createTime($this->created_at->format('c'))
-            ->updateTime($this->updated_at->format('c'))
-            ->build(),
+            fn () => (new PayPalOrder())
+            ->setId($this->order_id)
+            ->setIntent($this->intent)
+            ->setProcessingInstruction($this->processing_instruction)
+            ->setStatus($this->status)
+            ->setLinks($this->links)
+            ->setCreateTime($this->created_at->format('c'))
+            ->setUpdateTime($this->updated_at->format('c')),
             function (PayPalOrder $order) {
                 $this->order_id = $order->getId();
                 $this->intent = $order->getIntent();

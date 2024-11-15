@@ -46,4 +46,9 @@ class Money implements JsonSerializable
             'value' => $this->value,
         ];
     }
+
+    public static function fromArray(array $data): self
+    {
+        return new self($data['currency_code'], $data['value']);
+    }
 }

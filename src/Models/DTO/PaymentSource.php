@@ -15,23 +15,41 @@ use SytxLabs\PayPal\Models\DTO\PaymentSource\IDEALPayment;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\PayPalWallet;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\Token;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\VenmoWallet;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class PaymentSource implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('card', Card::class)]
     private ?Card $card;
+    #[ArrayMappingAttribute('token', Token::class)]
     private ?Token $token;
+    #[ArrayMappingAttribute('paypal', PayPalWallet::class)]
     private ?PayPalWallet $paypal;
+    #[ArrayMappingAttribute('bancontact', BancontactPayment::class)]
     private ?BancontactPayment $bancontact;
+    #[ArrayMappingAttribute('blik', BLIKPayment::class)]
     private ?BLIKPayment $blik;
+    #[ArrayMappingAttribute('eps', GeneralPayment::class)]
     private ?GeneralPayment $eps;
+    #[ArrayMappingAttribute('giropay', GeneralPayment::class)]
     private ?GeneralPayment $giropay;
+    #[ArrayMappingAttribute('ideal', IDEALPayment::class)]
     private ?IDEALPayment $ideal;
+    #[ArrayMappingAttribute('mybank', GeneralPayment::class)]
     private ?GeneralPayment $mybank;
+    #[ArrayMappingAttribute('p24', GeneralPaymentWithEmail::class)]
     private ?GeneralPaymentWithEmail $p24;
+    #[ArrayMappingAttribute('sofort', GeneralPayment::class)]
     private ?GeneralPayment $sofort;
+    #[ArrayMappingAttribute('trustly', GeneralPayment::class)]
     private ?GeneralPayment $trustly;
+    #[ArrayMappingAttribute('apple_pay', ApplePay::class)]
     private ?ApplePay $applePay;
+    #[ArrayMappingAttribute('google_pay', GooglePay::class)]
     private ?GooglePay $googlePay;
+    #[ArrayMappingAttribute('venmo', VenmoWallet::class)]
     private ?VenmoWallet $venmo;
 
     public function getCard(): ?Card

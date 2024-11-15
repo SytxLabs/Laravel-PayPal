@@ -4,7 +4,7 @@ namespace SytxLabs\PayPal\Services\Traits;
 
 use Illuminate\Database\Connection;
 use Illuminate\Support\Facades\DB;
-use PaypalServerSdkLib\Models\Order as PayPalOrder;
+use SytxLabs\PayPal\Models\DTO\Order as PayPalOrder;
 use SytxLabs\PayPal\Models\Order;
 
 trait PayPalOrderSave

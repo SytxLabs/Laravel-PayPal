@@ -1,26 +1,20 @@
 <?php
 
-namespace SytxLabs\PayPal\Models\DTO\PaymentSource;
+namespace SytxLabs\PayPal\Models\DTO;
 
 use InvalidArgumentException;
 use JsonSerializable;
 use stdClass;
-use SytxLabs\PayPal\Models\DTO\Address;
-use SytxLabs\PayPal\Models\DTO\Name;
-use SytxLabs\PayPal\Models\DTO\PaymentSource\PayPalWallet\PayPalWalletAttributes;
-use SytxLabs\PayPal\Models\DTO\PaymentSource\PayPalWallet\PayPalWalletExperienceContext;
-use SytxLabs\PayPal\Models\DTO\PhoneNumberWithType;
-use SytxLabs\PayPal\Models\DTO\TaxInfo;
 use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
 use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
-class PayPalWallet implements JsonSerializable
+class Payer implements JsonSerializable
 {
     use FromArray;
-    #[ArrayMappingAttribute('vault_id')]
-    private ?string $vaultId;
     #[ArrayMappingAttribute('email_address')]
     private ?string $emailAddress;
+    #[ArrayMappingAttribute('payer_id')]
+    private ?string $payerId;
     #[ArrayMappingAttribute('name', Name::class)]
     private ?Name $name;
     #[ArrayMappingAttribute('phone', PhoneNumberWithType::class)]
@@ -31,38 +25,12 @@ class PayPalWallet implements JsonSerializable
     private ?TaxInfo $taxInfo;
     #[ArrayMappingAttribute('address', Address::class)]
     private ?Address $address;
-    #[ArrayMappingAttribute('attributes', PayPalWalletAttributes::class)]
-    private ?PayPalWalletAttributes $attributes;
-    #[ArrayMappingAttribute('experience_context', PayPalWalletExperienceContext::class)]
-    private ?PayPalWalletExperienceContext $experienceContext;
-    #[ArrayMappingAttribute('billing_agreement_id')]
-    private ?string $billingAgreementId;
-
-    public function getVaultId(): ?string
-    {
-        return $this->vaultId;
-    }
-
-    public function setVaultId(?string $vaultId): self
-    {
-        $this->vaultId = $vaultId;
-        return $this;
-    }
 
     public function getEmailAddress(): ?string
     {
         return $this->emailAddress;
     }
 
-    /**
-     * Sets Email Address.
-     * The internationalized email address.<blockquote><strong>Note:</strong> Up to 64 characters are
-     * allowed before and 255 characters are allowed after the <code>@</code> sign. However, the generally
-     * accepted maximum length for an email address is 254 characters. The pattern verifies that an
-     * unquoted <code>@</code> sign exists.</blockquote>
-     *
-     * @maps email_address
-     */
     public function setEmailAddress(?string $emailAddress): self
     {
         if (
@@ -76,6 +44,17 @@ class PayPalWallet implements JsonSerializable
             throw new InvalidArgumentException('Invalid email address');
         }
         $this->emailAddress = $emailAddress;
+        return $this;
+    }
+
+    public function getPayerId(): ?string
+    {
+        return $this->payerId;
+    }
+
+    public function setPayerId(?string $payerId): self
+    {
+        $this->payerId = $payerId;
         return $this;
     }
 
@@ -106,9 +85,6 @@ class PayPalWallet implements JsonSerializable
         return $this->birthDate;
     }
 
-    /**
-     * Date Time of Birth. The datetime of Birth (yyyy-mm-ddThh.mm.ss+Z).
-     */
     public function setBirthDate(?string $birthDate): self
     {
         $this->birthDate = $birthDate;
@@ -137,47 +113,14 @@ class PayPalWallet implements JsonSerializable
         return $this;
     }
 
-    public function getAttributes(): ?PayPalWalletAttributes
-    {
-        return $this->attributes;
-    }
-
-    public function setAttributes(?PayPalWalletAttributes $attributes): self
-    {
-        $this->attributes = $attributes;
-        return $this;
-    }
-
-    public function getExperienceContext(): ?PayPalWalletExperienceContext
-    {
-        return $this->experienceContext;
-    }
-
-    public function setExperienceContext(?PayPalWalletExperienceContext $experienceContext): self
-    {
-        $this->experienceContext = $experienceContext;
-        return $this;
-    }
-
-    public function getBillingAgreementId(): ?string
-    {
-        return $this->billingAgreementId;
-    }
-
-    public function setBillingAgreementId(?string $billingAgreementId): self
-    {
-        $this->billingAgreementId = $billingAgreementId;
-        return $this;
-    }
-
     public function jsonSerialize(bool $asArrayWhenEmpty = false): array|stdClass
     {
         $json = [];
-        if (isset($this->vaultId)) {
-            $json['vault_id'] = $this->vaultId;
-        }
         if (isset($this->emailAddress)) {
             $json['email_address'] = $this->emailAddress;
+        }
+        if (isset($this->payerId)) {
+            $json['payer_id'] = $this->payerId;
         }
         if (isset($this->name)) {
             $json['name'] = $this->name;
@@ -193,15 +136,6 @@ class PayPalWallet implements JsonSerializable
         }
         if (isset($this->address)) {
             $json['address'] = $this->address;
-        }
-        if (isset($this->attributes)) {
-            $json['attributes'] = $this->attributes;
-        }
-        if (isset($this->experienceContext)) {
-            $json['experience_context'] = $this->experienceContext;
-        }
-        if (isset($this->billingAgreementId)) {
-            $json['billing_agreement_id'] = $this->billingAgreementId;
         }
 
         return (!$asArrayWhenEmpty && empty($json)) ? new stdClass() : $json;

@@ -3,13 +3,14 @@
 namespace SytxLabs\PayPal\Exception;
 
 use Exception;
-use PaypalServerSdkLib\Http\ApiResponse;
+use GuzzleHttp\Promise\PromiseInterface;
+use Illuminate\Http\Client\Response;
 
 class CreateOrderException extends Exception
 {
-    protected ApiResponse $response;
+    protected PromiseInterface|Response $response;
 
-    public function __construct(string $message, ApiResponse $response)
+    public function __construct(string $message, PromiseInterface|Response $response)
     {
         $this->response = $response;
         parent::__construct($message);
@@ -22,7 +23,6 @@ class CreateOrderException extends Exception
             'body' => $this->response->getBody(),
             'headers' => $this->response->getHeaders(),
             'reason' => $this->response->getReasonPhrase(),
-            'result' => $this->response->getResult(),
         ];
     }
 }
