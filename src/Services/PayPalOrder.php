@@ -16,9 +16,7 @@ use PaypalServerSdkLib\Models\Builders\ConfirmOrderRequestBuilder;
 use PaypalServerSdkLib\Models\Builders\ItemBuilder;
 use PaypalServerSdkLib\Models\Builders\MoneyBuilder;
 use PaypalServerSdkLib\Models\Builders\OrderApplicationContextBuilder;
-use PaypalServerSdkLib\Models\Builders\OrderAuthorizeRequestBuilder;
 use PaypalServerSdkLib\Models\Builders\OrderBuilder;
-use PaypalServerSdkLib\Models\Builders\OrderCaptureRequestBuilder;
 use PaypalServerSdkLib\Models\Builders\OrderRequestBuilder;
 use PaypalServerSdkLib\Models\Builders\OrderTrackerRequestBuilder;
 use PaypalServerSdkLib\Models\Builders\PayerBuilder;
@@ -126,7 +124,7 @@ class PayPalOrder extends PayPal
     public function getGroupedProducts(): Collection
     {
         return $this->items->groupBy(
-            static fn (Product $item) => $item->payee?->getEmailAddress() !== null ? $item->payee->getEmailAddress() . '_' . ($item->payee?->getMerchantId() ?? '') : ''
+            static fn (Product $item) => $item->payee?->email !== null ? $item->payee->email . '_' . ($item->payee?->merchantId ?? '') : ''
         );
     }
 

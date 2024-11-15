@@ -2,8 +2,6 @@
 
 namespace SytxLabs\PayPal\Enums;
 
-use PaypalServerSdkLib\Environment;
-
 enum PayPalModeType: string
 {
     case Sandbox = 'sandbox';
@@ -12,8 +10,8 @@ enum PayPalModeType: string
     public function getPayPalEnvironment(): string
     {
         return match ($this) {
-            self::Sandbox => Environment::SANDBOX,
-            self::Live => Environment::PRODUCTION,
+            self::Sandbox => 'Sandbox',
+            self::Live => 'Production',
         };
     }
 }
