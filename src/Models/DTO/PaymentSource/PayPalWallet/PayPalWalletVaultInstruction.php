@@ -5,14 +5,23 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\PayPalWallet;
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalPaymentTokenCustomerType;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalPaymentTokenUsagePattern;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class PayPalWalletVaultInstruction implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('store_in_vault')]
     private bool $storeInVault = false;
+    #[ArrayMappingAttribute('description')]
     private ?string $description;
+    #[ArrayMappingAttribute('usage_pattern')]
     private ?string $usagePattern;
+    #[ArrayMappingAttribute('usage_type', PayPalPaymentTokenUsagePattern::class)]
     private PayPalPaymentTokenUsagePattern $usageType;
+    #[ArrayMappingAttribute('customer_type', PayPalPaymentTokenCustomerType::class)]
     private ?PayPalPaymentTokenCustomerType $customerType = PayPalPaymentTokenCustomerType::CONSUMER;
+    #[ArrayMappingAttribute('permit_multiple_payment_tokens')]
     private ?bool $permitMultiplePaymentTokens = false;
 
     public function __construct(PayPalPaymentTokenUsagePattern $usageType)
@@ -108,5 +117,13 @@ class PayPalWalletVaultInstruction implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        if (isset($data['store_in_vault'])) {
+            $data['store_in_vault'] = $data['store_in_vault'] === 'ON_SUCCESS';
+        }
+        return self::fromArrayInternal(new self(PayPalPaymentTokenUsagePattern::tryFrom($data['usage_type'])), $data);
     }
 }

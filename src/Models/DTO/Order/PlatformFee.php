@@ -5,12 +5,19 @@ namespace SytxLabs\PayPal\Models\DTO\Order;
 use JsonSerializable;
 use SytxLabs\PayPal\Models\DTO\Money;
 use SytxLabs\PayPal\Models\DTO\Payee;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class PlatformFee implements JsonSerializable
 {
-    private ?Payee $payee;
+    use FromArray;
 
-    public function __construct(private Money $amount)
+    #[ArrayMappingAttribute(key: 'payee', class: Payee::class)]
+    private ?Payee $payee = null;
+    #[ArrayMappingAttribute(key: 'amount', class: Money::class)]
+    private Money $amount;
+
+    public function __construct(Money $amount)
     {
         $this->amount = $amount;
     }
@@ -47,5 +54,10 @@ class PlatformFee implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new static(Money::fromArray($data['amount'])), $data);
     }
 }

@@ -4,14 +4,24 @@ namespace SytxLabs\PayPal\Models\DTO;
 
 use InvalidArgumentException;
 use JsonSerializable;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class Address implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('address_line_1')]
     private ?string $addressLine1;
+    #[ArrayMappingAttribute('address_line_2')]
     private ?string $addressLine2;
+    #[ArrayMappingAttribute('admin_area_2')]
     private ?string $adminArea2;
+    #[ArrayMappingAttribute('admin_area_1')]
     private ?string $adminArea1;
+    #[ArrayMappingAttribute('postal_code')]
     private ?string $postalCode;
+    #[ArrayMappingAttribute('country_code')]
     private string $countryCode;
 
     public function __construct(string $countryCode)
@@ -112,14 +122,8 @@ class Address implements JsonSerializable
         return $json;
     }
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
-        $address = new self($data['country_code']);
-        $address->setAddressLine1($data['address_line_1'] ?? null);
-        $address->setAddressLine2($data['address_line_2'] ?? null);
-        $address->setAdminArea2($data['admin_area_2'] ?? null);
-        $address->setAdminArea1($data['admin_area_1'] ?? null);
-        $address->setPostalCode($data['postal_code'] ?? null);
-        return $address;
+        return self::fromArrayInternal(new self($data['country_code']), $data);
     }
 }

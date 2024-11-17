@@ -7,12 +7,20 @@ use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\VenmoWallet\VenmoWalletAdditionalAttributes;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\VenmoWallet\VenmoWalletExperienceContext;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class VenmoWallet implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('vault_id')]
     private ?string $vaultId;
+    #[ArrayMappingAttribute('email_address')]
     private ?string $emailAddress;
+    #[ArrayMappingAttribute('experience_context', VenmoWalletExperienceContext::class)]
     private ?VenmoWalletExperienceContext $experienceContext;
+    #[ArrayMappingAttribute('attributes', VenmoWalletAdditionalAttributes::class)]
     private ?VenmoWalletAdditionalAttributes $attributes;
 
     public function getVaultId(): ?string

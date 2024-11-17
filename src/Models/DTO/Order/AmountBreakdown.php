@@ -5,15 +5,26 @@ namespace SytxLabs\PayPal\Models\DTO\Order;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\Money;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class AmountBreakdown implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute(key: 'item_total', class: Money::class)]
     private ?Money $itemTotal;
+    #[ArrayMappingAttribute(key: 'shipping', class: Money::class)]
     private ?Money $shipping;
+    #[ArrayMappingAttribute(key: 'handling', class: Money::class)]
     private ?Money $handling;
+    #[ArrayMappingAttribute(key: 'tax_total', class: Money::class)]
     private ?Money $taxTotal;
+    #[ArrayMappingAttribute(key: 'insurance', class: Money::class)]
     private ?Money $insurance;
+    #[ArrayMappingAttribute(key: 'shipping_discount', class: Money::class)]
     private ?Money $shippingDiscount;
+    #[ArrayMappingAttribute(key: 'discount', class: Money::class)]
     private ?Money $discount;
 
     public function getItemTotal(): ?Money
@@ -119,33 +130,5 @@ class AmountBreakdown implements JsonSerializable
         }
 
         return (!$asArrayWhenEmpty && empty($json)) ? new stdClass() : $json;
-    }
-
-    public static function fromArray(array $data): self
-    {
-        $amountBreakdown = new self();
-        if (isset($data['item_total'])) {
-            $amountBreakdown->setItemTotal(Money::fromArray($data['item_total']));
-        }
-        if (isset($data['shipping'])) {
-            $amountBreakdown->setShipping(Money::fromArray($data['shipping']));
-        }
-        if (isset($data['handling'])) {
-            $amountBreakdown->setHandling(Money::fromArray($data['handling']));
-        }
-        if (isset($data['tax_total'])) {
-            $amountBreakdown->setTaxTotal(Money::fromArray($data['tax_total']));
-        }
-        if (isset($data['insurance'])) {
-            $amountBreakdown->setInsurance(Money::fromArray($data['insurance']));
-        }
-        if (isset($data['shipping_discount'])) {
-            $amountBreakdown->setShippingDiscount(Money::fromArray($data['shipping_discount']));
-        }
-        if (isset($data['discount'])) {
-            $amountBreakdown->setDiscount(Money::fromArray($data['discount']));
-        }
-
-        return $amountBreakdown;
     }
 }

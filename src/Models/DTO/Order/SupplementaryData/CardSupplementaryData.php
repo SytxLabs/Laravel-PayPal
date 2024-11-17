@@ -4,10 +4,16 @@ namespace SytxLabs\PayPal\Models\DTO\Order\SupplementaryData;
 
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class CardSupplementaryData implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute(key: 'level_2', class: Level2CardProcessingData::class)]
     private ?Level2CardProcessingData $level2;
+    #[ArrayMappingAttribute(key: 'level_3', class: Level3CardProcessingData::class)]
     private ?Level3CardProcessingData $level3;
 
     public function getLevel2(): ?Level2CardProcessingData

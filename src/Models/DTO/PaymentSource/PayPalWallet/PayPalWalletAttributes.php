@@ -5,10 +5,16 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\PayPalWallet;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\CustomerInformation;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class PayPalWalletAttributes implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('customer', CustomerInformation::class)]
     private ?CustomerInformation $customer;
+    #[ArrayMappingAttribute('vault', PayPalWalletVaultInstruction::class)]
     private ?PayPalWalletVaultInstruction $vault;
 
     /**

@@ -5,11 +5,18 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalCardVerificationMethod;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class CardVerification implements JsonSerializable
 {
-    public function __construct(private ?PayPalCardVerificationMethod $method = PayPalCardVerificationMethod::SCA_WHEN_REQUIRED)
+    use FromArray;
+    #[ArrayMappingAttribute(key: 'method', class: PayPalCardVerificationMethod::class)]
+    private ?PayPalCardVerificationMethod $method;
+
+    public function __construct(?PayPalCardVerificationMethod $method = PayPalCardVerificationMethod::SCA_WHEN_REQUIRED)
     {
+        $this->method = $method;
     }
 
     public function getMethod(): ?PayPalCardVerificationMethod

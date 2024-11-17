@@ -5,10 +5,16 @@ namespace SytxLabs\PayPal\Models\DTO\Order\SupplementaryData;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\Money;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class Level2CardProcessingData implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('invoice_id')]
     private ?string $invoiceId;
+    #[ArrayMappingAttribute('tax_total', Money::class)]
     private ?Money $taxTotal;
 
     public function getInvoiceId(): ?string

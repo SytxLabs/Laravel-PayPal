@@ -4,10 +4,15 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest;
 
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class CardExperienceContext implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('return_url')]
     private ?string $returnUrl;
+    #[ArrayMappingAttribute('cancel_url')]
     private ?string $cancelUrl;
 
     public function getReturnUrl(): ?string

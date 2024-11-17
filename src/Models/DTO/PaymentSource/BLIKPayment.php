@@ -6,14 +6,23 @@ use InvalidArgumentException;
 use JsonSerializable;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\BLIKPayment\BLIKExperienceContext;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\BLIKPayment\BLIKOneClickPayment;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class BLIKPayment implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('name')]
     private string $name;
+    #[ArrayMappingAttribute('country_code')]
     private string $countryCode;
+    #[ArrayMappingAttribute('email')]
     private ?string $email;
+    #[ArrayMappingAttribute('experience_context', BLIKExperienceContext::class)]
     private ?BLIKExperienceContext $experienceContext;
+    #[ArrayMappingAttribute('level_0')]
     private ?string $level0;
+    #[ArrayMappingAttribute('one_click', BLIKOneClickPayment::class)]
     private ?BLIKOneClickPayment $oneClick;
 
     public function __construct(string $name, string $countryCode)
@@ -125,5 +134,10 @@ class BLIKPayment implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self($data['name'], $data['country_code']), $data);
     }
 }

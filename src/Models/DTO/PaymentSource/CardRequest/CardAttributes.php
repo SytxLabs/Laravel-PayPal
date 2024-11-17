@@ -3,14 +3,20 @@
 namespace SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest;
 
 use JsonSerializable;
-use PaypalServerSDKLib\Models\VaultInstructionBase;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\CustomerInformation;
+use SytxLabs\PayPal\Models\DTO\PaymentSource\VaultInstructionBase;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class CardAttributes implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('customer', class: CustomerInformation::class)]
     private ?CustomerInformation $customer;
+    #[ArrayMappingAttribute('vault', class: VaultInstructionBase::class)]
     private ?VaultInstructionBase $vault;
+    #[ArrayMappingAttribute('verification', class: CardVerification::class)]
     private ?CardVerification $verification;
 
     public function getCustomer(): ?CustomerInformation

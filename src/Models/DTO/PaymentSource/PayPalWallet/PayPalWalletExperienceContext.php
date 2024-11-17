@@ -8,16 +8,28 @@ use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalExperienceLandingPage;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalExperienceUserAction;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalPayeePaymentMethodPreference;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalShippingPreference;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class PayPalWalletExperienceContext implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('brand_name')]
     private ?string $brandName;
+    #[ArrayMappingAttribute('locale')]
     private ?string $locale;
+    #[ArrayMappingAttribute('shipping_preference', PayPalShippingPreference::class)]
     private ?PayPalShippingPreference $shippingPreference = PayPalShippingPreference::GET_FROM_FILE;
+    #[ArrayMappingAttribute('return_url')]
     private ?string $returnUrl;
+    #[ArrayMappingAttribute('cancel_url')]
     private ?string $cancelUrl;
+    #[ArrayMappingAttribute('landing_page', PayPalExperienceLandingPage::class)]
     private ?PayPalExperienceLandingPage $landingPage = PayPalExperienceLandingPage::NO_PREFERENCE;
+    #[ArrayMappingAttribute('user_action', PayPalExperienceUserAction::class)]
     private ?PayPalExperienceUserAction $userAction = PayPalExperienceUserAction::CONTINUE;
+    #[ArrayMappingAttribute('payment_method_preference', PayPalPayeePaymentMethodPreference::class)]
     private ?PayPalPayeePaymentMethodPreference $paymentMethodPreference = PayPalPayeePaymentMethodPreference::UNRESTRICTED;
 
     public function getBrandName(): ?string

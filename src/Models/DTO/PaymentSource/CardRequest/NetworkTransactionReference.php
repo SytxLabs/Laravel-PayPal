@@ -5,12 +5,20 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalCardBrand;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class NetworkTransactionReference implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('id')]
     private string $id;
+    #[ArrayMappingAttribute('date')]
     private ?string $date;
+    #[ArrayMappingAttribute('network', PayPalCardBrand::class)]
     private ?PayPalCardBrand $network;
+    #[ArrayMappingAttribute('acquirer_reference_number')]
     private ?string $acquirerReferenceNumber;
 
     public function __construct(string $id)
@@ -76,5 +84,10 @@ class NetworkTransactionReference implements JsonSerializable
         }
 
         return (!$asArrayWhenEmpty && empty($json)) ? new stdClass() : $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self($data['id']), $data);
     }
 }

@@ -6,11 +6,28 @@ use Illuminate\Support\Str;
 use InvalidArgumentException;
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class Payee implements JsonSerializable
 {
-    public function __construct(private ?string $email, private ?string $merchantId = null, private ?string $referenceId = null, private ?PayeeShippingDetail $shippingDetail = null)
+    use FromArray;
+
+    #[ArrayMappingAttribute('email_address')]
+    private ?string $email;
+    #[ArrayMappingAttribute('merchant_id')]
+    private ?string $merchantId;
+    #[ArrayMappingAttribute('reference_id')]
+    private ?string $referenceId;
+    #[ArrayMappingAttribute('shipping_detail', ShippingDetail::class)]
+    private ?ShippingDetail $shippingDetail;
+
+    public function __construct(?string $email = null, ?string $merchantId = null, ?string $referenceId = null, ?ShippingDetail $shippingDetail = null)
     {
+        $this->email = $email;
+        $this->merchantId = $merchantId;
+        $this->referenceId = $referenceId;
+        $this->shippingDetail = $shippingDetail;
         if ($email !== null && preg_match('/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/', $email) !== 1) {
             throw new InvalidArgumentException('Invalid email address');
         }
@@ -59,12 +76,12 @@ class Payee implements JsonSerializable
         return $this;
     }
 
-    public function getShippingDetail(): ?PayeeShippingDetail
+    public function getShippingDetail(): ?ShippingDetail
     {
         return $this->shippingDetail;
     }
 
-    public function setShippingDetail(?PayeeShippingDetail $shippingDetail): self
+    public function setShippingDetail(?ShippingDetail $shippingDetail): self
     {
         $this->shippingDetail = $shippingDetail;
         return $this;
@@ -80,12 +97,5 @@ class Payee implements JsonSerializable
             $json['merchant_id'] = $this->merchantId;
         }
         return (!$asArrayWhenEmpty && empty($json)) ? new stdClass() : $json;
-    }
-
-    public static function fromArray(array $data): self
-    {
-        $payee = new self($data['email_address'] ?? null);
-        $payee->setMerchantId($data['merchant_id'] ?? null);
-        return $payee;
     }
 }

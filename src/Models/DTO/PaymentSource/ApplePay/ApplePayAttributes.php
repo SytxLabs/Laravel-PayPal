@@ -6,10 +6,15 @@ use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\CustomerInformation;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\VaultInstructionBase;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class ApplePayAttributes implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('customer', CustomerInformation::class)]
     private ?CustomerInformation $customer;
+    #[ArrayMappingAttribute('vault', VaultInstructionBase::class)]
     private ?VaultInstructionBase $vault;
 
     public function getCustomer(): ?CustomerInformation

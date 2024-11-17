@@ -2,8 +2,14 @@
 
 namespace SytxLabs\PayPal\Models\DTO\PaymentSource;
 
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
+
 class IDEALPayment extends GeneralPayment
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('bic')]
     private ?string $bic;
 
     public function getBic(): ?string

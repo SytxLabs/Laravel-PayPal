@@ -5,13 +5,21 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\ApplePay;
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalApplePayPaymentDataType;
 use SytxLabs\PayPal\Models\DTO\Money;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class ApplePayDecryptedTokenData implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute(key: 'transaction_amount', class: Money::class)]
     private ?Money $transactionAmount;
+    #[ArrayMappingAttribute(key: 'tokenized_card', class: ApplePayTokenizedCard::class)]
     private ApplePayTokenizedCard $tokenizedCard;
+    #[ArrayMappingAttribute(key: 'device_manufacturer_id')]
     private ?string $deviceManufacturerId;
+    #[ArrayMappingAttribute(key: 'payment_data_type', class: PayPalApplePayPaymentDataType::class)]
     private ?PayPalApplePayPaymentDataType $paymentDataType;
+    #[ArrayMappingAttribute(key: 'payment_data', class: ApplePayPaymentData::class)]
     private ?ApplePayPaymentData $paymentData;
 
     public function __construct(ApplePayTokenizedCard $tokenizedCard)
@@ -93,5 +101,10 @@ class ApplePayDecryptedTokenData implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self(ApplePayTokenizedCard::fromArray($data['tokenized_card'])), $data);
     }
 }

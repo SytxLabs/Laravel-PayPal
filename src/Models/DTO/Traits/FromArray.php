@@ -8,7 +8,11 @@ trait FromArray
 {
     public static function fromArray(array $data): static
     {
-        $instance = new static();
+        return self::fromArrayInternal(new static(), $data);
+    }
+
+    private static function fromArrayInternal(self $instance, array $data): static
+    {
         $reflection = new ReflectionObject($instance);
         foreach ($reflection->getProperties() as $method) {
             $attributes = $method->getAttributes(ArrayMappingAttribute::class);
@@ -19,7 +23,6 @@ trait FromArray
             $attribute = $attributes[0]->newInstance();
             $instance->setValueFromArray($attribute->key, $data, $attribute, $method);
         }
-
         return $instance;
     }
 
@@ -39,20 +42,72 @@ trait FromArray
         if ($attribute->class !== null) {
             if ($attribute->isArray) {
                 $this->{$method->getName()} = array_filter(array_map(static function ($item) use ($attribute) {
-                    if (enum_exists($attribute->class)) {
-                        return $attribute->class::tryFrom($item);
-                    }
-                    return $attribute->class::fromArray($item);
+                    return self::castArrayValue($attribute->class, $item);
                 }, $data[$key]));
                 return;
             }
-            if (enum_exists($attribute->class)) {
-                $this->{$method->getName()} = $attribute->class::tryFrom($data[$key]);
-            } else {
-                $this->{$method->getName()} = $attribute->class::fromArray($data[$key]);
-            }
+            $this->{$method->getName()} = self::castArrayValue($attribute->class, $data[$key]);
         } else {
             $this->{$method->getName()} = $data[$key];
         }
+    }
+
+    private static function castArrayValue($class, $value): mixed
+    {
+        if ($value instanceof $class || $value === null) {
+            return $value;
+        }
+        if (enum_exists($class)) {
+            return $class::tryFrom($value);
+        }
+        if (method_exists($class, 'fromArray')) {
+            return $class::fromArray($value);
+        }
+        return $value;
+    }
+
+    public function toArray(): array
+    {
+        $reflection = new ReflectionObject($this);
+        $array = [];
+        foreach ($reflection->getProperties() as $method) {
+            $attributes = $method->getAttributes(ArrayMappingAttribute::class);
+            if (!isset($this->{$method->getName()})) {
+                continue;
+            }
+            if (count($attributes) < 1) {
+                $array[$method->getName()] = $this->{$method->getName()};
+                continue;
+            }
+            $attribute = $attributes[0]->newInstance();
+            $array[$attribute->key] = $this->valueToArray($attribute, $method);
+        }
+
+        return $array;
+    }
+
+    private function valueToArray($attribute, $method): mixed
+    {
+        if ($attribute->class !== null) {
+            if ($attribute->isArray) {
+                return array_map(static function ($item) use ($attribute) {
+                    if (enum_exists($attribute->class)) {
+                        return $item->value;
+                    }
+                    if (method_exists($item, 'toArray')) {
+                        return $item->toArray();
+                    }
+                    return $item;
+                }, $this->{$method->getName()});
+            }
+            if (enum_exists($attribute->class)) {
+                return $this->{$method->getName()}->value;
+            }
+            if (method_exists($this->{$method->getName()}, 'toArray')) {
+                return $this->{$method->getName()}->toArray();
+            }
+            return $this->{$method->getName()};
+        }
+        return $this->{$method->getName()};
     }
 }

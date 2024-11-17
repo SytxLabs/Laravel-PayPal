@@ -10,19 +10,34 @@ use SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest\CardAttributes;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest\CardExperienceContext;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest\CardStoredCredential;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest\NetworkToken;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class Card implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('name')]
     private ?string $name;
+    #[ArrayMappingAttribute('number')]
     private ?string $number;
+    #[ArrayMappingAttribute('expiry')]
     private ?string $expiry;
+    #[ArrayMappingAttribute('security_code')]
     private ?string $securityCode;
+    #[ArrayMappingAttribute('billing_address', Address::class)]
     private ?Address $billingAddress;
+    #[ArrayMappingAttribute('attributes', CardAttributes::class)]
     private ?CardAttributes $attributes;
+    #[ArrayMappingAttribute('vault_id')]
     private ?string $vaultId;
+    #[ArrayMappingAttribute('single_use_token')]
     private ?string $singleUseToken;
+    #[ArrayMappingAttribute('stored_credential', CardStoredCredential::class)]
     private ?CardStoredCredential $storedCredential;
+    #[ArrayMappingAttribute('network_token', NetworkToken::class)]
     private ?NetworkToken $networkToken;
+    #[ArrayMappingAttribute('experience_context', CardExperienceContext::class)]
     private ?CardExperienceContext $experienceContext;
 
     public function getName(): ?string

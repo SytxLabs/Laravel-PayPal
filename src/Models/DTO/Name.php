@@ -4,11 +4,22 @@ namespace SytxLabs\PayPal\Models\DTO;
 
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class Name implements JsonSerializable
 {
-    public function __construct(private ?string $givenName = null, private ?string $surname = null)
+    use FromArray;
+
+    #[ArrayMappingAttribute('given_name')]
+    private ?string $givenName;
+    #[ArrayMappingAttribute('surname')]
+    private ?string $surname;
+
+    public function __construct(?string $givenName = null, ?string $surname = null)
     {
+        $this->givenName = $givenName;
+        $this->surname = $surname;
     }
 
     public function getGivenName(): ?string
@@ -45,7 +56,7 @@ class Name implements JsonSerializable
         return (!$asArrayWhenEmpty && empty($json)) ? new stdClass() : $json;
     }
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             $data['given_name'] ?? null,

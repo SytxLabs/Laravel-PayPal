@@ -4,12 +4,19 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\BLIKPayment;
 
 use InvalidArgumentException;
 use JsonSerializable;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class BLIKOneClickPayment implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('auth_code')]
     private ?string $authCode;
+    #[ArrayMappingAttribute('consumer_reference')]
     private string $consumerReference;
+    #[ArrayMappingAttribute('alias_label')]
     private ?string $aliasLabel;
+    #[ArrayMappingAttribute('alias_key')]
     private ?string $aliasKey;
 
     public function __construct(string $consumerReference)
@@ -78,5 +85,10 @@ class BLIKOneClickPayment implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self($data['consumer_reference']), $data);
     }
 }

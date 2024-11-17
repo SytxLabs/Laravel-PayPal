@@ -5,20 +5,33 @@ namespace SytxLabs\PayPal\Models\DTO\Order;
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\PayPalItemCategory;
 use SytxLabs\PayPal\Models\DTO\Money;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 use SytxLabs\PayPal\Models\DTO\UniversalProductCode;
 
 class Item implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute(key: 'name')]
     private string $name;
+    #[ArrayMappingAttribute(key: 'unit_amount', class: Money::class)]
     private Money $unitAmount;
-    private ?Money $tax;
+    #[ArrayMappingAttribute(key: 'tax', class: Money::class)]
+    private ?Money $tax = null;
+    #[ArrayMappingAttribute(key: 'quantity')]
     private string $quantity;
-    private ?string $description;
-    private ?string $sku;
-    private ?string $url;
-    private ?PayPalItemCategory $category;
-    private ?string $imageUrl;
-    private ?UniversalProductCode $upc;
+    #[ArrayMappingAttribute(key: 'description')]
+    private ?string $description = null;
+    #[ArrayMappingAttribute(key: 'sku')]
+    private ?string $sku = null;
+    #[ArrayMappingAttribute(key: 'url')]
+    private ?string $url = null;
+    #[ArrayMappingAttribute(key: 'category', class: PayPalItemCategory::class)]
+    private ?PayPalItemCategory $category = null;
+    #[ArrayMappingAttribute(key: 'image_url')]
+    private ?string $imageUrl = null;
+    #[ArrayMappingAttribute(key: 'upc', class: UniversalProductCode::class)]
+    private ?UniversalProductCode $upc = null;
 
     public function __construct(string $name, Money $unitAmount, string $quantity)
     {
@@ -168,30 +181,8 @@ class Item implements JsonSerializable
         return $json;
     }
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
-        $item = new self($data['name'], Money::fromArray($data['unit_amount']), $data['quantity']);
-        if (isset($data['tax'])) {
-            $item->setTax(Money::fromArray($data['tax']));
-        }
-        if (isset($data['description'])) {
-            $item->setDescription($data['description']);
-        }
-        if (isset($data['sku'])) {
-            $item->setSku($data['sku']);
-        }
-        if (isset($data['url'])) {
-            $item->setUrl($data['url']);
-        }
-        if (isset($data['category'])) {
-            $item->setCategory(PayPalItemCategory::tryFrom($data['category']));
-        }
-        if (isset($data['image_url'])) {
-            $item->setImageUrl($data['image_url']);
-        }
-        if (isset($data['upc'])) {
-            $item->setUpc(UniversalProductCode::fromArray($data['upc']));
-        }
-        return $item;
+        return self::fromArrayInternal(new self($data['name'], Money::fromArray($data['unit_amount']), $data['quantity']), $data);
     }
 }

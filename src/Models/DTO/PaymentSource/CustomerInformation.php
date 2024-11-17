@@ -6,12 +6,20 @@ use InvalidArgumentException;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\PhoneNumberWithType;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class CustomerInformation implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('id')]
     private ?string $id;
+    #[ArrayMappingAttribute('email_address')]
     private ?string $emailAddress;
+    #[ArrayMappingAttribute('phone', PhoneNumberWithType::class)]
     private ?PhoneNumberWithType $phone;
+    #[ArrayMappingAttribute('merchant_customer_id')]
     private ?string $merchantCustomerId;
 
     public function getId(): ?string

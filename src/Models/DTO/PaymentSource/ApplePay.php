@@ -9,16 +9,27 @@ use SytxLabs\PayPal\Models\DTO\PaymentSource\ApplePay\ApplePayAttributes;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\ApplePay\ApplePayDecryptedTokenData;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest\CardStoredCredential;
 use SytxLabs\PayPal\Models\DTO\PhoneNumber;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class ApplePay implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('id')]
     private ?string $id;
+    #[ArrayMappingAttribute('name')]
     private ?string $name;
+    #[ArrayMappingAttribute('email_address')]
     private ?string $emailAddress;
+    #[ArrayMappingAttribute('phone_number', PhoneNumber::class)]
     private ?PhoneNumber $phoneNumber;
+    #[ArrayMappingAttribute('decrypted_token', ApplePayDecryptedTokenData::class)]
     private ?ApplePayDecryptedTokenData $decryptedToken;
+    #[ArrayMappingAttribute('stored_credential', CardStoredCredential::class)]
     private ?CardStoredCredential $storedCredential;
+    #[ArrayMappingAttribute('vault_id')]
     private ?string $vaultId;
+    #[ArrayMappingAttribute('attributes', ApplePayAttributes::class)]
     private ?ApplePayAttributes $attributes;
 
     public function getId(): ?string

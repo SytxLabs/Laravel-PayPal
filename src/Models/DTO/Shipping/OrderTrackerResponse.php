@@ -3,21 +3,33 @@
 namespace SytxLabs\PayPal\Models\DTO\Shipping;
 
 use JsonSerializable;
-use PaypalServerSDKLib\Models\OrderTrackerItem;
 use stdClass;
 use SytxLabs\PayPal\Enums\DTO\OrderTrackerStatus;
 use SytxLabs\PayPal\Models\DTO\LinkDescription;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class OrderTrackerResponse implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('id')]
     private ?string $id;
+    #[ArrayMappingAttribute('status', OrderTrackerStatus::class)]
     private ?OrderTrackerStatus $status;
     /**
      * @var OrderTrackerItem[]|null
      */
+    #[ArrayMappingAttribute('items', OrderTrackerItem::class, true)]
     private ?array $items;
+    /**
+     * @var LinkDescription[]|null
+     */
+    #[ArrayMappingAttribute('links', LinkDescription::class, true)]
     private ?array $links;
+    #[ArrayMappingAttribute('create_time')]
     private ?string $createTime;
+    #[ArrayMappingAttribute('update_time')]
     private ?string $updateTime;
 
     public function getId(): ?string

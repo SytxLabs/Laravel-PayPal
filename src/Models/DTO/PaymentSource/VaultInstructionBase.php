@@ -4,10 +4,16 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource;
 
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class VaultInstructionBase implements JsonSerializable
 {
-    public function __construct(private bool $storeInVault = false)
+    use FromArray;
+    #[ArrayMappingAttribute('store_in_vault')]
+    private bool $storeInVault = false;
+
+    public function __construct(bool $storeInVault = false)
     {
     }
 
@@ -29,5 +35,16 @@ class VaultInstructionBase implements JsonSerializable
             $json['store_in_vault'] = 'ON_SUCCESS';
         }
         return (!$asArrayWhenEmpty && empty($json)) ? new stdClass() : $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        if (isset($data['store_in_vault'])) {
+            $storeInVault = $data['store_in_vault'] === 'ON_SUCCESS';
+        } else {
+            $storeInVault = false;
+        }
+        $data['store_in_vault'] = $storeInVault;
+        return self::fromArrayInternal(new self(), $data);
     }
 }

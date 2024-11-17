@@ -5,10 +5,16 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\VenmoWallet;
 use InvalidArgumentException;
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class VenmoWalletCustomerInformation implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('id')]
     private ?string $id;
+    #[ArrayMappingAttribute('email_address')]
     private ?string $emailAddress;
 
     public function getId(): ?string

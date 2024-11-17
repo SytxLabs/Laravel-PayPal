@@ -5,10 +5,16 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\VenmoWallet;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalShippingPreference;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class VenmoWalletExperienceContext implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('brand_name')]
     private ?string $brandName;
+    #[ArrayMappingAttribute('shipping_preference', PayPalShippingPreference::class)]
     private ?PayPalShippingPreference $shippingPreference = PayPalShippingPreference::GET_FROM_FILE;
 
     public function getBrandName(): ?string

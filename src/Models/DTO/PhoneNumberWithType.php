@@ -4,10 +4,16 @@ namespace SytxLabs\PayPal\Models\DTO;
 
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\DTO\PayPalPhoneType;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class PhoneNumberWithType implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('phone_type', PayPalPhoneType::class)]
     private ?PayPalPhoneType $phoneType;
+    #[ArrayMappingAttribute('phone_number', PhoneNumber::class)]
     private PhoneNumber $phoneNumber;
 
     public function __construct(PhoneNumber $phoneNumber)
@@ -44,5 +50,11 @@ class PhoneNumberWithType implements JsonSerializable
             $json['phone_type'] = $this->phoneType;
         }
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return (new static(PhoneNumber::fromArray($data['phone_number'])))
+            ->setPhoneType(isset($data['phone_type']) ? PayPalPhoneType::tryFrom($data['phone_type']) : null);
     }
 }

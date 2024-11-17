@@ -5,15 +5,28 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest;
 use InvalidArgumentException;
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalECIFlag;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class NetworkToken implements JsonSerializable
 {
-    private ?string $cryptogram;
-    private ?PayPalECIFlag $eciFlag;
-    private ?string $tokenRequestorId;
+    use FromArray;
 
-    public function __construct(private string $number, private string $expiry)
+    #[ArrayMappingAttribute('cryptogram')]
+    private ?string $cryptogram;
+    #[ArrayMappingAttribute('eci_flag', PayPalECIFlag::class)]
+    private ?PayPalECIFlag $eciFlag;
+    #[ArrayMappingAttribute('token_requestor_id')]
+    private ?string $tokenRequestorId;
+    #[ArrayMappingAttribute('number')]
+    private string $number;
+    #[ArrayMappingAttribute('expiry')]
+    private string $expiry;
+
+    public function __construct(string $number, string $expiry)
     {
+        $this->number = $number;
+        $this->expiry = $expiry;
     }
 
     public function getNumber(): string
@@ -91,5 +104,10 @@ class NetworkToken implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new static($data['number'], $data['expiry']), $data);
     }
 }

@@ -3,11 +3,17 @@
 namespace SytxLabs\PayPal\Models\DTO\PaymentSource;
 
 use JsonSerializable;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class BancontactPayment implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('name')]
     private string $name;
+    #[ArrayMappingAttribute('country_code')]
     private string $countryCode;
+    #[ArrayMappingAttribute('experience_context', class: ExperienceContext::class)]
     private ?ExperienceContext $experienceContext;
 
     public function __construct(string $name, string $countryCode)
@@ -71,5 +77,10 @@ class BancontactPayment implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self($data['name'], $data['country_code']), $data);
     }
 }

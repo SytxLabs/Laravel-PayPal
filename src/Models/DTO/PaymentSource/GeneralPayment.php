@@ -3,13 +3,24 @@
 namespace SytxLabs\PayPal\Models\DTO\PaymentSource;
 
 use JsonSerializable;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class GeneralPayment implements JsonSerializable
 {
-    private ?ExperienceContext $experienceContext;
+    use FromArray;
 
-    public function __construct(private string $name, private string $countryCode)
+    #[ArrayMappingAttribute('experience_context', ExperienceContext::class)]
+    private ?ExperienceContext $experienceContext;
+    #[ArrayMappingAttribute('name')]
+    private string $name;
+    #[ArrayMappingAttribute('country_code')]
+    private string $countryCode;
+
+    public function __construct(string $name, string $countryCode)
     {
+        $this->name = $name;
+        $this->countryCode = $countryCode;
     }
 
     public function getName(): string
@@ -67,5 +78,10 @@ class GeneralPayment implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self($data['name'], $data['country_code']), $data);
     }
 }

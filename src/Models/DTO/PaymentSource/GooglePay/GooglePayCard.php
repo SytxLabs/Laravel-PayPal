@@ -2,16 +2,25 @@
 
 namespace SytxLabs\PayPal\Models\DTO\PaymentSource\GooglePay;
 
+use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalCardBrand;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalCardType;
 use SytxLabs\PayPal\Models\DTO\Address;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
-class GooglePayCard implements \JsonSerializable
+class GooglePayCard implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('name')]
     private ?string $name;
+    #[ArrayMappingAttribute('type', PayPalCardType::class)]
     private ?PayPalCardType $type;
+    #[ArrayMappingAttribute('brand', PayPalCardBrand::class)]
     private ?PayPalCardBrand $brand;
+    #[ArrayMappingAttribute('billing_address', Address::class)]
     private ?Address $billingAddress;
 
     public function getName(): ?string

@@ -9,15 +9,26 @@ use SytxLabs\PayPal\Models\DTO\PaymentSource\GooglePay\GooglePayCard;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\GooglePay\GooglePayCardAttributes;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\GooglePay\GooglePayDecryptedTokenData;
 use SytxLabs\PayPal\Models\DTO\PhoneNumber;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class GooglePay implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('name')]
     private ?string $name;
+    #[ArrayMappingAttribute('email_address')]
     private ?string $emailAddress;
+    #[ArrayMappingAttribute('phone_number', PhoneNumber::class)]
     private ?PhoneNumber $phoneNumber;
+    #[ArrayMappingAttribute('card', GooglePayCard::class)]
     private ?GooglePayCard $card;
+    #[ArrayMappingAttribute('decrypted_token', GooglePayDecryptedTokenData::class)]
     private ?GooglePayDecryptedTokenData $decryptedToken;
+    #[ArrayMappingAttribute('assurance_details', AssuranceDetails::class)]
     private ?AssuranceDetails $assuranceDetails;
+    #[ArrayMappingAttribute('attributes', GooglePayCardAttributes::class)]
     private ?GooglePayCardAttributes $attributes;
 
     public function getName(): ?string

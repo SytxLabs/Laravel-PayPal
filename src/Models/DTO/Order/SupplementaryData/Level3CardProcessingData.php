@@ -7,18 +7,28 @@ use stdClass;
 use SytxLabs\PayPal\Models\DTO\Address;
 use SytxLabs\PayPal\Models\DTO\Money;
 use SytxLabs\PayPal\Models\DTO\Order\Item;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class Level3CardProcessingData implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('shipping_amount', class: Money::class)]
     private ?Money $shippingAmount;
+    #[ArrayMappingAttribute('duty_amount', class: Money::class)]
     private ?Money $dutyAmount;
+    #[ArrayMappingAttribute('discount_amount', class: Money::class)]
     private ?Money $discountAmount;
+    #[ArrayMappingAttribute('shipping_address', class: Address::class)]
     private ?Address $shippingAddress;
+    #[ArrayMappingAttribute('ships_from_postal_code')]
     private ?string $shipsFromPostalCode;
 
     /**
      * @var Item[]|null
      */
+    #[ArrayMappingAttribute('line_items', class: Item::class, isArray: true)]
     private ?array $lineItems;
 
     public function getShippingAmount(): ?Money
@@ -77,7 +87,7 @@ class Level3CardProcessingData implements JsonSerializable
     }
 
     /**
-     * @return LineItem[]|null
+     * @return Item[]|null
      */
     public function getLineItems(): ?array
     {
@@ -85,7 +95,7 @@ class Level3CardProcessingData implements JsonSerializable
     }
 
     /**
-     * @param LineItem[]|null $lineItems
+     * @param Item[]|null $lineItems
      */
     public function setLineItems(?array $lineItems): self
     {

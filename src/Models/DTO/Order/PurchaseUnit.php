@@ -7,21 +7,37 @@ use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\Payee;
 use SytxLabs\PayPal\Models\DTO\Shipping\ShippingWithTrackingDetails;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class PurchaseUnit implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute(key: 'reference_id')]
     private ?string $referenceId;
+    #[ArrayMappingAttribute(key: 'amount', class: AmountWithBreakdown::class)]
     private ?AmountWithBreakdown $amount;
+    #[ArrayMappingAttribute(key: 'payee', class: Payee::class)]
     private ?Payee $payee;
+    #[ArrayMappingAttribute(key: 'payment_instruction', class: PaymentInstruction::class)]
     private ?PaymentInstruction $paymentInstruction;
+    #[ArrayMappingAttribute(key: 'description')]
     private ?string $description;
+    #[ArrayMappingAttribute(key: 'custom_id')]
     private ?string $customId;
+    #[ArrayMappingAttribute(key: 'invoice_id')]
     private ?string $invoiceId;
+    #[ArrayMappingAttribute(key: 'id')]
     private ?string $id;
+    #[ArrayMappingAttribute(key: 'soft_descriptor')]
     private ?string $softDescriptor;
+    #[ArrayMappingAttribute(key: 'items', class: Item::class, isArray: true)]
     private ?array $items;
+    #[ArrayMappingAttribute(key: 'shipping', class: ShippingWithTrackingDetails::class)]
     private ?ShippingWithTrackingDetails $shipping;
+    #[ArrayMappingAttribute(key: 'supplementary_data', class: SupplementaryData::class)]
     private ?SupplementaryData $supplementaryData;
+    #[ArrayMappingAttribute(key: 'most_recent_errors')]
     private array $mostRecentErrors = [];
 
     public function getReferenceId(): ?string
@@ -220,28 +236,5 @@ class PurchaseUnit implements JsonSerializable
         }
 
         return (!$asArrayWhenEmpty && empty($json)) ? new stdClass() : $json;
-    }
-
-    public static function fromArray(array $data): self
-    {
-        $purchaseUnit = new self();
-        $purchaseUnit->setReferenceId($data['reference_id'] ?? null);
-        $purchaseUnit->setAmount(AmountWithBreakdown::fromArray($data['amount'] ?? []));
-        $purchaseUnit->setPayee(Payee::fromArray($data['payee'] ?? []));
-        $purchaseUnit->setPaymentInstruction($data['payment_instruction'] ?? null);
-        $purchaseUnit->setDescription($data['description'] ?? null);
-        $purchaseUnit->setCustomId($data['custom_id'] ?? null);
-        $purchaseUnit->setInvoiceId($data['invoice_id'] ?? null);
-        $purchaseUnit->setId($data['id'] ?? null);
-        $purchaseUnit->setSoftDescriptor($data['soft_descriptor'] ?? null);
-        foreach (($data['items'] ?? []) as $item) {
-            $purchaseUnit->items ??= [];
-            $purchaseUnit->items[] = Item::fromArray($item);
-        }
-        $purchaseUnit->setShipping(ShippingWithTrackingDetails::fromArray($data['shipping'] ?? []));
-        $purchaseUnit->setSupplementaryData($data['supplementary_data'] ?? null);
-        $purchaseUnit->setMostRecentErrors($data['most_recent_errors'] ?? []);
-
-        return $purchaseUnit;
     }
 }

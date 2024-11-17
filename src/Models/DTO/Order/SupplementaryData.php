@@ -5,9 +5,13 @@ namespace SytxLabs\PayPal\Models\DTO\Order;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\Order\SupplementaryData\CardSupplementaryData;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class SupplementaryData implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute(key: 'card', class: CardSupplementaryData::class)]
     private ?CardSupplementaryData $card;
 
     public function getCard(): ?CardSupplementaryData

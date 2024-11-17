@@ -4,13 +4,24 @@ namespace SytxLabs\PayPal\Models\DTO;
 
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\DTO\LinkHTTPMethod;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class LinkDescription implements JsonSerializable
 {
-    private ?LinkHTTPMethod $method;
+    use FromArray;
 
-    public function __construct(private string $href, private string $rel)
+    #[ArrayMappingAttribute('method', LinkHTTPMethod::class)]
+    private ?LinkHTTPMethod $method;
+    #[ArrayMappingAttribute('href')]
+    private string $href;
+    #[ArrayMappingAttribute('rel')]
+    private string $rel;
+
+    public function __construct(string $href, string $rel)
     {
+        $this->href = $href;
+        $this->rel = $rel;
     }
 
     public function getHref(): string
@@ -59,12 +70,8 @@ class LinkDescription implements JsonSerializable
         return $json;
     }
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
-        $link = new self($data['href'], $data['rel']);
-        if (isset($data['method'])) {
-            $link->setMethod(LinkHTTPMethod::tryFrom($data['method']));
-        }
-        return $link;
+        return self::fromArrayInternal(new self($data['href'], $data['rel']), $data);
     }
 }

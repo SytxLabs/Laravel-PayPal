@@ -5,11 +5,19 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\GooglePay;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest\CardVerification;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class GooglePayCardAttributes implements JsonSerializable
 {
-    public function __construct(private ?CardVerification $verification = null)
+    use FromArray;
+
+    #[ArrayMappingAttribute('verification', CardVerification::class)]
+    private ?CardVerification $verification;
+
+    public function __construct(?CardVerification $verification = null)
     {
+        $this->verification = $verification;
     }
 
     public function getVerification(): ?CardVerification

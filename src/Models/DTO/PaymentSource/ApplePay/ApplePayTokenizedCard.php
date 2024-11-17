@@ -8,15 +8,25 @@ use stdClass;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalCardBrand;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalCardType;
 use SytxLabs\PayPal\Models\DTO\Address;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class ApplePayTokenizedCard implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute('name')]
     private ?string $name;
+    #[ArrayMappingAttribute('number')]
     private ?string $number;
+    #[ArrayMappingAttribute('expiry')]
     private ?string $expiry;
+    #[ArrayMappingAttribute('card_type', PayPalCardBrand::class)]
     private ?PayPalCardBrand $cardType;
+    #[ArrayMappingAttribute('type', PayPalCardType::class)]
     private ?PayPalCardType $type;
+    #[ArrayMappingAttribute('brand', PayPalCardBrand::class)]
     private ?PayPalCardBrand $brand;
+    #[ArrayMappingAttribute('billing_address', Address::class)]
     private ?Address $billingAddress;
 
     public function getName(): ?string

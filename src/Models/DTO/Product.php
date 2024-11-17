@@ -2,25 +2,46 @@
 
 namespace SytxLabs\PayPal\Models\DTO;
 
+use JsonSerializable;
 use SytxLabs\PayPal\Enums\PayPalItemCategory;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
-class Product
+class Product implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('name')]
     public string $name;
+    #[ArrayMappingAttribute('unitPrice')]
     public float $unitPrice;
+    #[ArrayMappingAttribute('currencyCode')]
     public ?string $currencyCode = null;
+    #[ArrayMappingAttribute('totalPrice')]
     public ?float $totalPrice = null;
+    #[ArrayMappingAttribute('tax')]
     public ?float $tax = null;
+    #[ArrayMappingAttribute('quantity')]
     public int $quantity = 1;
+    #[ArrayMappingAttribute('sku')]
     public ?string $sku = null;
+    #[ArrayMappingAttribute('description')]
     public ?string $description = null;
+    #[ArrayMappingAttribute('url')]
     public ?string $url = null;
+    #[ArrayMappingAttribute('category', PayPalItemCategory::class)]
     public ?PayPalItemCategory $category = null;
+    #[ArrayMappingAttribute('imageUrl')]
     public ?string $imageUrl = null;
+    #[ArrayMappingAttribute('upc', UniversalProductCode::class)]
     public ?UniversalProductCode $upc = null;
+    #[ArrayMappingAttribute('payee', Payee::class)]
     public ?Payee $payee = null;
+    #[ArrayMappingAttribute('shipping')]
     public ?float $shipping = null;
+    #[ArrayMappingAttribute('discount')]
     public ?float $discount = null;
+    #[ArrayMappingAttribute('shippingDiscount')]
     public ?float $shippingDiscount = null;
 
     public function __construct(string $name, float $unitPrice, int $quantity, ?string $currencyCode = null)
@@ -31,22 +52,9 @@ class Product
         $this->currencyCode = $currencyCode;
     }
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
-        $product = new self($data['name'], $data['unitPrice'], $data['quantity'], $data['currencyCode'] ?? null);
-        $product->setTax($data['tax'] ?? null);
-        $product->setSku($data['sku'] ?? null);
-        $product->setTotalPrice($data['totalPrice'] ?? null);
-        $product->setDescription($data['description'] ?? null);
-        $product->setUrl($data['url'] ?? null);
-        $product->setCategory($data['category'] ?? null);
-        $product->setImageUrl($data['imageUrl'] ?? null);
-        $product->setUpc($data['upc'] ?? null);
-        $product->setPayee($data['payee'] ?? null);
-        $product->setShipping($data['shipping'] ?? null);
-        $product->setDiscount($data['discount'] ?? null);
-        $product->setShippingDiscount($data['shippingDiscount'] ?? null);
-        return $product;
+        return self::fromArrayInternal(new self($data['name'], $data['unitPrice'], $data['quantity'], $data['currencyCode'] ?? null), $data);
     }
 
     public function setTotalPrice(?float $totalPrice): self
@@ -151,5 +159,10 @@ class Product
             'discount' => $this->discount,
             'shippingDiscount' => $this->shippingDiscount,
         ];
+    }
+
+    public function jsonSerialize(): array
+    {
+        return $this->toArray();
     }
 }

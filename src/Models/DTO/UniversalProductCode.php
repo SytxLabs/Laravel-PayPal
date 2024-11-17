@@ -4,10 +4,19 @@ namespace SytxLabs\PayPal\Models\DTO;
 
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\DTO\UniversalProductCodeType;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class UniversalProductCode implements JsonSerializable
 {
-    public function __construct(private UniversalProductCodeType $type, private string $code)
+    use FromArray;
+
+    #[ArrayMappingAttribute('type', UniversalProductCodeType::class)]
+    private UniversalProductCodeType $type;
+    #[ArrayMappingAttribute('code')]
+    private string $code;
+
+    public function __construct(UniversalProductCodeType $type, string $code)
     {
     }
 
@@ -41,7 +50,7 @@ class UniversalProductCode implements JsonSerializable
         ];
     }
 
-    public static function fromArray(array $data): self
+    public static function fromArray(array $data): static
     {
         return new self(
             UniversalProductCodeType::from($data['type']),

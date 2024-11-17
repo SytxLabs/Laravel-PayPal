@@ -7,19 +7,29 @@ use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalVenmoPaymentTokenCustomerType;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalVenmoPaymentTokenUsagePattern;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalVenmoPaymentTokenUsageType;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\VaultInstructionBase;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class VenmoWalletVaultAttributes extends VaultInstructionBase
 {
+    use FromArray;
+    #[ArrayMappingAttribute('description')]
     private ?string $description;
+    #[ArrayMappingAttribute('usage_pattern', PayPalVenmoPaymentTokenUsagePattern::class)]
     private ?PayPalVenmoPaymentTokenUsagePattern $usagePattern;
+    #[ArrayMappingAttribute('customer_type', PayPalVenmoPaymentTokenCustomerType::class)]
     private ?PayPalVenmoPaymentTokenCustomerType $customerType = PayPalVenmoPaymentTokenCustomerType::CONSUMER;
+    #[ArrayMappingAttribute('permit_multiple_payment_tokens')]
     private ?bool $permitMultiplePaymentTokens = false;
+    #[ArrayMappingAttribute('usage_type', PayPalVenmoPaymentTokenUsageType::class)]
+    private PayPalVenmoPaymentTokenUsageType $usageType;
 
     public function __construct(
         bool $storeInVault = false,
-        private PayPalVenmoPaymentTokenUsageType $usageType = PayPalVenmoPaymentTokenUsageType::MERCHANT
+        PayPalVenmoPaymentTokenUsageType $usageType = PayPalVenmoPaymentTokenUsageType::MERCHANT
     ) {
         parent::__construct($storeInVault);
+        $this->usageType = $usageType;
     }
 
     public function getDescription(): ?string

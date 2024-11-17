@@ -3,11 +3,19 @@
 namespace SytxLabs\PayPal\Models\DTO\PaymentSource;
 
 use JsonSerializable;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class Token implements JsonSerializable
 {
-    public function __construct(private string $id)
+    use FromArray;
+
+    #[ArrayMappingAttribute('id')]
+    private string $id;
+
+    public function __construct(string $id)
     {
+        $this->id = $id;
     }
 
     public function getId(): string
@@ -27,5 +35,10 @@ class Token implements JsonSerializable
             'id' => $this->id,
             'type' => 'BILLING_AGREEMENT',
         ];
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return (new static($data['id']));
     }
 }

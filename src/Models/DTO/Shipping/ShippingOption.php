@@ -5,14 +5,29 @@ namespace SytxLabs\PayPal\Models\DTO\Shipping;
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\PayPalFulfillmentType;
 use SytxLabs\PayPal\Models\DTO\Money;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class ShippingOption implements JsonSerializable
 {
-    private ?PayPalFulfillmentType $type;
-    private ?Money $amount;
+    use FromArray;
 
-    public function __construct(private string $id, private string $label, private bool $selected)
+    #[ArrayMappingAttribute('type', PayPalFulfillmentType::class)]
+    private ?PayPalFulfillmentType $type;
+    #[ArrayMappingAttribute('amount', Money::class)]
+    private ?Money $amount;
+    #[ArrayMappingAttribute('id')]
+    private string $id;
+    #[ArrayMappingAttribute('label')]
+    private string $label;
+    #[ArrayMappingAttribute('selected')]
+    private bool $selected;
+
+    public function __construct(string $id, string $label, bool $selected)
     {
+        $this->id = $id;
+        $this->label = $label;
+        $this->selected = $selected;
     }
 
     public function getId(): string

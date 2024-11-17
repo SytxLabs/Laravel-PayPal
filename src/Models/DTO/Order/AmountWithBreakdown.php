@@ -2,14 +2,26 @@
 
 namespace SytxLabs\PayPal\Models\DTO\Order;
 
+use InvalidArgumentException;
 use JsonSerializable;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class AmountWithBreakdown implements JsonSerializable
 {
-    private ?AmountBreakdown $breakdown;
+    use FromArray;
 
-    public function __construct(private string $currencyCode, private string $value)
+    #[ArrayMappingAttribute('breakdown', class: AmountBreakdown::class)]
+    private ?AmountBreakdown $breakdown;
+    #[ArrayMappingAttribute('currency_code')]
+    private string $currencyCode;
+    #[ArrayMappingAttribute('value')]
+    private string $value;
+
+    public function __construct(string $currencyCode, string $value)
     {
+        $this->currencyCode = $currencyCode;
+        $this->value = $value;
     }
 
     public function getCurrencyCode(): string
@@ -58,15 +70,11 @@ class AmountWithBreakdown implements JsonSerializable
         return $json;
     }
 
-    public static function fromArray(array $data): ?self
+    public static function fromArray(array $data): static
     {
         if (!isset($data['currency_code'], $data['value'])) {
-            return null;
+            throw new InvalidArgumentException('Currency code and value are required');
         }
-        $amountWithBreakdown = new self($data['currency_code'], $data['value']);
-        if (isset($data['breakdown'])) {
-            $amountWithBreakdown->setBreakdown(AmountBreakdown::fromArray($data['breakdown']));
-        }
-        return $amountWithBreakdown;
+        return self::fromArrayInternal(new self($data['currency_code'], $data['value']), $data);
     }
 }

@@ -4,11 +4,18 @@ namespace SytxLabs\PayPal\Models\DTO;
 
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\DTO\PayPalProcessingInstruction;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class ConfirmOrder implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('payment_source', PaymentSource::class)]
     private PaymentSource $paymentSource;
+    #[ArrayMappingAttribute('processing_instruction', PayPalProcessingInstruction::class)]
     private ?PayPalProcessingInstruction $processingInstruction = PayPalProcessingInstruction::NO_INSTRUCTION;
+    #[ArrayMappingAttribute('application_context', ApplicationContext::class)]
     private ?ApplicationContext $applicationContext;
 
     public function __construct(PaymentSource $paymentSource)
@@ -60,5 +67,10 @@ class ConfirmOrder implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self(PaymentSource::fromArray($data['payment_source'])), $data);
     }
 }

@@ -4,10 +4,16 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\VenmoWallet;
 
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class VenmoWalletAdditionalAttributes implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('customer', VenmoWalletCustomerInformation::class)]
     private ?VenmoWalletCustomerInformation $customer;
+    #[ArrayMappingAttribute('vault', VenmoWalletVaultAttributes::class)]
     private ?VenmoWalletVaultAttributes $vault;
 
     public function getCustomer(): ?VenmoWalletCustomerInformation

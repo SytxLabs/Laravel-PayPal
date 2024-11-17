@@ -2,18 +2,29 @@
 
 namespace SytxLabs\PayPal\Models\DTO\PaymentSource\GooglePay;
 
+use InvalidArgumentException;
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalGooglePayAuthenticationMethod;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class GooglePayDecryptedTokenData implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute(key: 'authentication_method', class: PayPalGooglePayAuthenticationMethod::class)]
+    private PayPalGooglePayAuthenticationMethod $authenticationMethod;
+    #[ArrayMappingAttribute(key: 'message_id')]
     private ?string $messageId;
+    #[ArrayMappingAttribute(key: 'message_expiration')]
     private ?string $messageExpiration;
+    #[ArrayMappingAttribute(key: 'cryptogram')]
     private ?string $cryptogram;
+    #[ArrayMappingAttribute(key: 'eci_indicator')]
     private ?string $eciIndicator;
 
-    public function __construct(private PayPalGooglePayAuthenticationMethod $authenticationMethod)
+    public function __construct(PayPalGooglePayAuthenticationMethod $authenticationMethod)
     {
+        $this->authenticationMethod = $authenticationMethod;
     }
 
     public function getMessageId(): ?string
@@ -91,5 +102,13 @@ class GooglePayDecryptedTokenData implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        if (!isset($data['authentication_method'])) {
+            throw new InvalidArgumentException('Missing required field "authentication_method"');
+        }
+        return self::fromArrayInternal(new self(PayPalGooglePayAuthenticationMethod::tryFrom($data['authentication_method'])), $data);
     }
 }

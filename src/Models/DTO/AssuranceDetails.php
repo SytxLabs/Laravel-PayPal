@@ -4,10 +4,16 @@ namespace SytxLabs\PayPal\Models\DTO;
 
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class AssuranceDetails implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('account_verified')]
     private ?bool $accountVerified = false;
+    #[ArrayMappingAttribute('card_holder_authenticated')]
     private ?bool $cardHolderAuthenticated = false;
 
     public function getAccountVerified(): ?bool

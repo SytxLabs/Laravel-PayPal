@@ -3,10 +3,16 @@
 namespace SytxLabs\PayPal\Models\DTO;
 
 use JsonSerializable;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class PhoneNumber implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('country_code')]
     private ?string $countryCode;
+    #[ArrayMappingAttribute('national_number')]
     private string $nationalNumber;
 
     public function __construct(string $nationalNumber, ?string $countryCode = null)
@@ -44,5 +50,10 @@ class PhoneNumber implements JsonSerializable
             $json['country_code'] = $this->countryCode;
         }
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return (new static($data['national_number'], $data['country_code'] ?? null));
     }
 }

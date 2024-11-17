@@ -3,16 +3,29 @@
 namespace SytxLabs\PayPal\Models\DTO;
 
 use JsonSerializable;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class OAuthToken implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('access_token')]
+    private string $accessToken;
+    #[ArrayMappingAttribute('token_type')]
+    private string $tokenType;
+    #[ArrayMappingAttribute('expires_in')]
     private ?int $expiresIn;
+    #[ArrayMappingAttribute('scope')]
     private ?string $scope;
+    #[ArrayMappingAttribute('expiry')]
     private ?int $expiry;
+    #[ArrayMappingAttribute('refresh_token')]
     private ?string $refreshToken;
+    #[ArrayMappingAttribute('id_token')]
     private ?string $idToken;
 
-    public function __construct(private string $accessToken, private string $tokenType)
+    public function __construct(string $accessToken, string $tokenType)
     {
         $this->accessToken = $accessToken;
         $this->tokenType = $tokenType;
@@ -118,5 +131,10 @@ class OAuthToken implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self($data['access_token'], $data['token_type']), $data);
     }
 }

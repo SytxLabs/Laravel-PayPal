@@ -4,15 +4,25 @@ namespace SytxLabs\PayPal\Models\DTO\Shipping;
 
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 use SytxLabs\PayPal\Models\DTO\UniversalProductCode;
 
 class OrderTrackerItem implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('name')]
     private ?string $name;
+    #[ArrayMappingAttribute('quantity')]
     private ?string $quantity;
+    #[ArrayMappingAttribute('sku')]
     private ?string $sku;
+    #[ArrayMappingAttribute('url')]
     private ?string $url;
+    #[ArrayMappingAttribute('image_url')]
     private ?string $imageUrl;
+    #[ArrayMappingAttribute('upc', UniversalProductCode::class)]
     private ?UniversalProductCode $upc;
 
     public function getName(): ?string

@@ -5,15 +5,25 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\BLIKPayment;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalShippingPreference;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class BLIKExperienceContext implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute(key: 'brand_name')]
     private ?string $brandName;
+    #[ArrayMappingAttribute(key: 'locale')]
     private ?string $locale;
+    #[ArrayMappingAttribute(key: 'shipping_preference', class: PayPalShippingPreference::class)]
     private ?PayPalShippingPreference $shippingPreference;
+    #[ArrayMappingAttribute(key: 'return_url')]
     private ?string $returnUrl;
+    #[ArrayMappingAttribute(key: 'cancel_url')]
     private ?string $cancelUrl;
+    #[ArrayMappingAttribute(key: 'consumer_ip')]
     private ?string $consumerIp;
+    #[ArrayMappingAttribute(key: 'consumer_user_agent')]
     private ?string $consumerUserAgent;
 
     public function getBrandName(): ?string

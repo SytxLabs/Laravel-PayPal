@@ -4,13 +4,27 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource;
 
 use InvalidArgumentException;
 use JsonSerializable;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class GeneralPaymentWithEmail implements JsonSerializable
 {
-    private ?ExperienceContext $experienceContext;
+    use FromArray;
 
-    public function __construct(private string $name, private string $email, private string $countryCode)
+    #[ArrayMappingAttribute('experience_context', ExperienceContext::class)]
+    private ?ExperienceContext $experienceContext;
+    #[ArrayMappingAttribute('name')]
+    private string $name;
+    #[ArrayMappingAttribute('email')]
+    private string $email;
+    #[ArrayMappingAttribute('country_code')]
+    private string $countryCode;
+
+    public function __construct(string $name, string $email, string $countryCode)
     {
+        $this->email = $email;
+        $this->name = $name;
+        $this->countryCode = $countryCode;
         if (strlen($this->email) > 250 || preg_match('/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/', $this->email) !== 1) {
             throw new InvalidArgumentException('Invalid email address');
         }
@@ -85,5 +99,10 @@ class GeneralPaymentWithEmail implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self($data['name'], $data['email'], $data['country_code']), $data);
     }
 }

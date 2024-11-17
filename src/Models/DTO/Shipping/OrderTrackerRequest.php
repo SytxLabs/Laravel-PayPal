@@ -4,18 +4,28 @@ namespace SytxLabs\PayPal\Models\DTO\Shipping;
 
 use JsonSerializable;
 use SytxLabs\PayPal\Enums\DTO\ShipmentCarrier;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class OrderTrackerRequest implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('tracking_number')]
     private ?string $trackingNumber;
+    #[ArrayMappingAttribute('carrier', ShipmentCarrier::class)]
     private ?ShipmentCarrier $carrier;
+    #[ArrayMappingAttribute('carrier_name_other')]
     private ?string $carrierNameOther;
+    #[ArrayMappingAttribute('capture_id')]
     private string $captureId;
+    #[ArrayMappingAttribute('notify_payer')]
     private ?bool $notifyPayer = false;
 
     /**
      * @var OrderTrackerItem[]|null
      */
+    #[ArrayMappingAttribute('items', OrderTrackerItem::class, true)]
     private ?array $items;
 
     public function __construct(string $captureId)
@@ -115,5 +125,10 @@ class OrderTrackerRequest implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new static($data['capture_id']), $data);
     }
 }

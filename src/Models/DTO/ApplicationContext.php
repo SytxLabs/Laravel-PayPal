@@ -8,17 +8,30 @@ use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalExperienceLandingPage;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalExperienceUserAction;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalShippingPreference;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\StoredPaymentSource;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class ApplicationContext implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('brand_name')]
     private ?string $brandName = null;
+    #[ArrayMappingAttribute('locale')]
     private ?string $locale = null;
+    #[ArrayMappingAttribute('landing_page', PayPalExperienceLandingPage::class)]
     private ?PayPalExperienceLandingPage $landingPage = PayPalExperienceLandingPage::NO_PREFERENCE;
+    #[ArrayMappingAttribute('shipping_preference', PayPalShippingPreference::class)]
     private ?PayPalShippingPreference $shippingPreference = PayPalShippingPreference::GET_FROM_FILE;
+    #[ArrayMappingAttribute('user_action', PayPalExperienceUserAction::class)]
     private ?PayPalExperienceUserAction $userAction = PayPalExperienceUserAction::CONTINUE;
+    #[ArrayMappingAttribute('payment_method', PaymentMethodPreference::class)]
     private ?PaymentMethodPreference $paymentMethod = null;
+    #[ArrayMappingAttribute('return_url')]
     private ?string $returnUrl = null;
+    #[ArrayMappingAttribute('cancel_url')]
     private ?string $cancelUrl = null;
+    #[ArrayMappingAttribute('stored_payment_source', StoredPaymentSource::class)]
     private ?StoredPaymentSource $storedPaymentSource = null;
 
     public function getBrandName(): ?string

@@ -4,12 +4,19 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource\ApplePay;
 
 use JsonSerializable;
 use stdClass;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class ApplePayPaymentData implements JsonSerializable
 {
+    use FromArray;
+    #[ArrayMappingAttribute(key: 'cryptogram')]
     private ?string $cryptogram;
+    #[ArrayMappingAttribute(key: 'eci_indicator')]
     private ?string $eciIndicator;
+    #[ArrayMappingAttribute(key: 'emv_data')]
     private ?string $emvData;
+    #[ArrayMappingAttribute(key: 'pin')]
     private ?string $pin;
 
     public function getCryptogram(): ?string

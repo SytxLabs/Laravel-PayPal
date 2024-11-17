@@ -7,12 +7,20 @@ use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalPaymentInitiator;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalStoredPaymentSourcePaymentType;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalStoredPaymentSourceUsageType;
 use SytxLabs\PayPal\Models\DTO\PaymentSource\CardRequest\NetworkTransactionReference;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class StoredPaymentSource implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('payment_initiator', PayPalPaymentInitiator::class)]
     private PayPalPaymentInitiator $paymentInitiator;
+    #[ArrayMappingAttribute('payment_type', PayPalStoredPaymentSourcePaymentType::class)]
     private PayPalStoredPaymentSourcePaymentType $paymentType;
+    #[ArrayMappingAttribute('usage', PayPalStoredPaymentSourceUsageType::class)]
     private ?PayPalStoredPaymentSourceUsageType $usage = PayPalStoredPaymentSourceUsageType::DERIVED;
+    #[ArrayMappingAttribute('previous_network_transaction_reference')]
     private ?NetworkTransactionReference $previousNetworkTransactionReference;
 
     public function __construct(
@@ -82,5 +90,13 @@ class StoredPaymentSource implements JsonSerializable
         }
 
         return $json;
+    }
+
+    public static function fromArray(array $data): static
+    {
+        return self::fromArrayInternal(new self(
+            PayPalPaymentInitiator::tryFrom($data['payment_initiator']),
+            PayPalStoredPaymentSourcePaymentType::tryFrom($data['payment_type'])
+        ), $data);
     }
 }

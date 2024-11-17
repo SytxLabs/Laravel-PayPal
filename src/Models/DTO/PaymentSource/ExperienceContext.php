@@ -5,13 +5,22 @@ namespace SytxLabs\PayPal\Models\DTO\PaymentSource;
 use JsonSerializable;
 use stdClass;
 use SytxLabs\PayPal\Enums\DTO\PaymentSource\PayPalShippingPreference;
+use SytxLabs\PayPal\Models\DTO\Traits\ArrayMappingAttribute;
+use SytxLabs\PayPal\Models\DTO\Traits\FromArray;
 
 class ExperienceContext implements JsonSerializable
 {
+    use FromArray;
+
+    #[ArrayMappingAttribute('brand_name')]
     private ?string $brandName;
+    #[ArrayMappingAttribute('locale')]
     private ?string $locale;
+    #[ArrayMappingAttribute('shipping_preference', PayPalShippingPreference::class)]
     private ?PayPalShippingPreference $shippingPreference = PayPalShippingPreference::GET_FROM_FILE;
+    #[ArrayMappingAttribute('return_url')]
     private ?string $returnUrl;
+    #[ArrayMappingAttribute('cancel_url')]
     private ?string $cancelUrl;
 
     public function getBrandName(): ?string
