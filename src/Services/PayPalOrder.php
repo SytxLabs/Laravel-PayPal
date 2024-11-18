@@ -95,8 +95,7 @@ class PayPalOrder extends PayPal
             $this->applicationContext = new ApplicationContext();
             if (function_exists('config') && app()->bound('config')) {
                 $this->applicationContext = $this->applicationContext
-                    ->setBrandName(config('app.name'))
-                    ->setLandingPage(config('app.url'));
+                    ->setBrandName(config('app.name'));
             }
         }
         if (($this->config['success_route'] ?? null) !== null && $this->applicationContext->getReturnUrl() === null) {

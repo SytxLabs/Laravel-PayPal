@@ -56,34 +56,34 @@ class ApplicationContext implements JsonSerializable
         return $this;
     }
 
-    public function getLandingPage(): ?string
+    public function getLandingPage(): ?PayPalExperienceLandingPage
     {
         return $this->landingPage;
     }
 
-    public function setLandingPage(?string $landingPage): self
+    public function setLandingPage(?PayPalExperienceLandingPage $landingPage): self
     {
         $this->landingPage = $landingPage;
         return $this;
     }
 
-    public function getShippingPreference(): ?string
+    public function getShippingPreference(): ?PayPalShippingPreference
     {
         return $this->shippingPreference;
     }
 
-    public function setShippingPreference(?string $shippingPreference): self
+    public function setShippingPreference(?PayPalShippingPreference $shippingPreference): self
     {
         $this->shippingPreference = $shippingPreference;
         return $this;
     }
 
-    public function getUserAction(): ?string
+    public function getUserAction(): ?PayPalExperienceUserAction
     {
         return $this->userAction;
     }
 
-    public function setUserAction(?string $userAction): self
+    public function setUserAction(?PayPalExperienceUserAction $userAction): self
     {
         $this->userAction = $userAction;
         return $this;
