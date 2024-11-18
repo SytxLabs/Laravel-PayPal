@@ -245,7 +245,7 @@ class PayPalOrder extends PayPal
         if ($client === null) {
             throw new RuntimeException('PayPal client not found');
         }
-        $intent = $this->order->getIntent() ?? $this->intent;
+        $intent = $this->order?->getIntent() ?? $this->intent;
         $apiResponse = $client->get($id ?? $this->order->getId());
         if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
