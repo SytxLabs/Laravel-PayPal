@@ -8,15 +8,18 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use SytxLabs\PayPal\Enums\DTO\PayPalProcessingInstruction;
+use SytxLabs\PayPal\Enums\PayPalCheckoutPaymentIntent;
+use SytxLabs\PayPal\Enums\PayPalOrderCompletionType;
 use SytxLabs\PayPal\Facades\Accessor\PayPalOrderFacadeAccessor;
 use SytxLabs\PayPal\Facades\PayPal;
 use SytxLabs\PayPal\Models\DTO\Order as PayPalOrder;
 
 /**
  * @property string $order_id
- * @property ?string $intent
- * @property ?string $processing_instruction
- * @property ?string $status
+ * @property ?PayPalCheckoutPaymentIntent $intent
+ * @property ?PayPalProcessingInstruction $processing_instruction
+ * @property ?PayPalOrderCompletionType $status
  * @property ?array $links
  * @property ?string $request_id
  *
@@ -41,6 +44,9 @@ class Order extends Model
 
     protected $casts = [
         'links' => 'array',
+        'intent' => PayPalCheckoutPaymentIntent::class,
+        'processing_instruction' => PayPalProcessingInstruction::class,
+        'status' => PayPalOrderCompletionType::class,
     ];
 
     public function getTable(): string
