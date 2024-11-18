@@ -245,11 +245,15 @@ class PayPalOrder extends PayPal
         if ($client === null) {
             throw new RuntimeException('PayPal client not found');
         }
+        $intent = $this->order->getIntent() ?? $this->intent;
         $apiResponse = $client->get($id ?? $this->order->getId());
         if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = Order::fromArray($apiResponse->json());
+        if ($id !== null) {
+            $this->order->setIntent($intent);
+        }
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this->order;
     }
@@ -297,6 +301,7 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
+        $intent = $this->order->getIntent() ?? $this->intent;
         $paymentSourceResponse = $this->order->getPaymentSource();
         if ($paymentSourceResponse === null) {
             throw new RuntimeException('Payment source not found');
@@ -312,6 +317,7 @@ class PayPalOrder extends PayPal
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = Order::fromArray($apiResponse->json());
+        $this->order->setIntent($intent);
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }
@@ -329,6 +335,7 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
+        $intent = $this->order->getIntent() ?? $this->intent;
         $this->getOrderFromPayPal();
         if ($this->order->getStatus() === PayPalOrderCompletionType::COMPLETED) {
             return $this;
@@ -353,6 +360,7 @@ class PayPalOrder extends PayPal
             throw new CaptureOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
         $this->order = Order::fromArray($apiResponse->json());
+        $this->order->setIntent($intent);
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }
@@ -380,6 +388,7 @@ class PayPalOrder extends PayPal
         if ($this->order === null) {
             throw new RuntimeException('Order not found');
         }
+        $intent = $this->order->getIntent() ?? $this->intent;
         $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)
             ->withHeader('Prefer', 'return=representation')
             ->post($this->order->getId() . '/track', $builder);
@@ -387,6 +396,7 @@ class PayPalOrder extends PayPal
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = Order::fromArray($apiResponse->json());
+        $this->order->setIntent($intent);
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
     }
