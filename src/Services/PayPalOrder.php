@@ -187,6 +187,12 @@ class PayPalOrder extends PayPal
             ->post('', $order);
         $result = $apiResponse->json();
         if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {
+            $this->log('CreateOrderException: ' . $apiResponse->getReasonPhrase() ?? 'An error occurred', [
+                'response' => $apiResponse->body(),
+                'request_id' => $this->payPalRequestId,
+                'order' => $order,
+                'intent' => $this->intent,
+            ]);
             throw new CreateOrderException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
         $order->setId($result['id']);
@@ -242,11 +248,18 @@ class PayPalOrder extends PayPal
     {
         $client = $this->controller ?? $this->build()->controller;
         if ($client === null) {
+            $this->log('PayPal client not found');
             throw new RuntimeException('PayPal client not found');
         }
         $intent = $this->order?->getIntent() ?? $this->intent;
         $apiResponse = $client->get($id ?? $this->order->getId());
         if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
+            $this->log('Failed to get order from PayPal', [
+                'response' => $apiResponse->body(),
+                'request_id' => $this->payPalRequestId,
+                'order' => $this->order,
+                'intent' => $this->intent,
+            ]);
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = Order::fromArray($apiResponse->json());
@@ -313,6 +326,12 @@ class PayPalOrder extends PayPal
                 'body' => (new ConfirmOrder($paymentSourceResponse))->setProcessingInstruction($this->order->getProcessingInstruction()),
             ]);
         if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
+            $this->log('ConfirmOrderException: ' . $apiResponse->getReasonPhrase() ?? 'An error occurred', [
+                'response' => $apiResponse->body(),
+                'request_id' => $this->payPalRequestId,
+                'order' => $this->order,
+                'intent' => $this->intent,
+            ]);
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->order = Order::fromArray($apiResponse->json());
