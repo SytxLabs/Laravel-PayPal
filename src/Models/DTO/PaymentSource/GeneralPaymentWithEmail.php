@@ -25,7 +25,7 @@ class GeneralPaymentWithEmail implements JsonSerializable
         $this->email = $email;
         $this->name = $name;
         $this->countryCode = $countryCode;
-        if (strlen($this->email) > 250 || preg_match('/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/', $this->email) !== 1) {
+        if (strlen($this->email) > 250 || filter_var($this->email, FILTER_VALIDATE_EMAIL) === false) {
             throw new InvalidArgumentException('Invalid email address');
         }
     }
@@ -48,7 +48,7 @@ class GeneralPaymentWithEmail implements JsonSerializable
 
     public function setEmail(string $email): void
     {
-        if (strlen($email) > 250 || preg_match('/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/', $email) !== 1) {
+        if (strlen($email) > 250 || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             throw new InvalidArgumentException('Invalid email address');
         }
         $this->email = $email;

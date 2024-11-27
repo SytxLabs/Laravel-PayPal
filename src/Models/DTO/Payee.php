@@ -28,7 +28,7 @@ class Payee implements JsonSerializable
         $this->merchantId = $merchantId;
         $this->referenceId = $referenceId;
         $this->shippingDetail = $shippingDetail;
-        if ($email !== null && preg_match('/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/', $email) !== 1) {
+        if ($email !== null && filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
             throw new InvalidArgumentException('Invalid email address');
         }
         if ($merchantId !== null && preg_match('/^[2-9A-HJ-NP-Z]/', $merchantId) !== 1) {
@@ -45,7 +45,7 @@ class Payee implements JsonSerializable
 
     public function setEmailAddress(?string $emailAddress): void
     {
-        if ($emailAddress !== null && preg_match('/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/', $emailAddress) !== 1) {
+        if ($emailAddress !== null && filter_var($emailAddress, FILTER_VALIDATE_EMAIL) === false) {
             throw new InvalidArgumentException('Invalid email address');
         }
         $this->email = $emailAddress;

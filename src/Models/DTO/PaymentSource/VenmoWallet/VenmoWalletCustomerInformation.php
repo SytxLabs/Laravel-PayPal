@@ -37,7 +37,7 @@ class VenmoWalletCustomerInformation implements JsonSerializable
     {
         if (
             $emailAddress !== null
-            && (strlen($emailAddress) > 250 || preg_match('/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/', $emailAddress) !== 1)
+            && (strlen($emailAddress) > 250 || filter_var($emailAddress, FILTER_VALIDATE_EMAIL) === false)
         ) {
             throw new InvalidArgumentException('Invalid email address');
         }

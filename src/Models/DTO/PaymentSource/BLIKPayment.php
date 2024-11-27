@@ -73,7 +73,7 @@ class BLIKPayment implements JsonSerializable
     {
         if (
             $email !== null
-            && (strlen($email) > 250 || preg_match('/^[\w-]+(?:\.[\w-]+)*@(?:[\w-]+\.)+[a-zA-Z]{2,7}$/', $email) !== 1)
+            && (strlen($email) > 250 || filter_var($email, FILTER_VALIDATE_EMAIL) === false)
         ) {
             throw new InvalidArgumentException('Invalid email address');
         }
