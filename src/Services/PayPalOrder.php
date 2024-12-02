@@ -123,7 +123,8 @@ class PayPalOrder extends PayPal
     {
         return $this->items->groupBy(
             static fn (Product $item) => $item->payee?->getEmailAddress() !== null ? $item->payee->getEmailAddress() . '_' . ($item->payee?->getMerchantId() ?? '') : ''
-        );
+        )->map(static fn(Collection $items) => $items->filter(static fn (Product $item) => (($item->totalPrice ?? ($item->unitPrice * $item->quantity)) + $item->tax + $item->shipping) - ($item->shippingDiscount + $item->discount) > 0))
+            ->filter(static fn (Collection $items) => $items->count() > 0.00);
     }
 
     /**
