@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('sytxlabs_paypal_oauth_tokens', static function (Blueprint $table) {
+        Schema::create(config('paypal.database.oauth_table'), static function (Blueprint $table) {
             $table->id();
 
             $table->text('access_token');
@@ -22,6 +22,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sytxlabs_paypal_oauth_tokens');
+        Schema::dropIfExists(config('paypal.database.oauth_table'));
     }
 };

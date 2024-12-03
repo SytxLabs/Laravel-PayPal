@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('sytxlabs_paypal_orders', static function (Blueprint $table) {
+        Schema::create(config('paypal.database.order_table'), static function (Blueprint $table) {
             $table->id();
 
             $table->text('order_id');
@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('processing_instruction')->nullable();
             $table->string('status')->nullable();
             $table->json('links')->nullable();
+            $table->text('request_id')->nullable()->after('links');
 
             $table->timestamps();
         });
@@ -24,6 +25,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('sytxlabs_paypal_orders');
+        Schema::dropIfExists(config('paypal.database.order_table'));
     }
 };
