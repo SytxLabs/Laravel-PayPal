@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('processing_instruction')->nullable();
             $table->string('status')->nullable();
             $table->json('links')->nullable();
-            $table->text('request_id')->nullable()->after('links');
+            $table->text('request_id')->nullable();
 
             $table->timestamps();
         });
