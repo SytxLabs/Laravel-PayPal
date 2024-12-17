@@ -51,10 +51,11 @@ class Order extends Model
 
     public function getTable(): string
     {
+        $configFile = function_exists('config') && app()->bound('config') ? config('paypal') : [];
         if (PayPalOrderFacadeAccessor::getProvider() === null) {
-            return 'sytxlabs_paypal_orders';
+            return $configFile['database']['order_table'] ?? 'sytxlabs_paypal_orders';
         }
-        return PayPalOrderFacadeAccessor::getProvider()?->config['database']['order_table'] ?? 'sytxlabs_paypal_orders';
+        return PayPalOrderFacadeAccessor::getProvider()?->config['database']['order_table'] ?? $configFile['database']['order_table'] ?? 'sytxlabs_paypal_orders';
     }
 
     public function getConnectionName(): ?string
