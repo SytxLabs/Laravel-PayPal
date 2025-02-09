@@ -3,6 +3,7 @@
     "description": "A Laravel package to interact with PayPal",
     "type": "library",
     "license": "MIT",
+    "version": "1.0.2",
     "keywords": [
         "laravel",
         "paypal",
