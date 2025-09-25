@@ -35,8 +35,7 @@
         "guzzlehttp/guzzle": "^7.8"
     },
     "require-dev": {
-        "orchestra/testbench": "^8.5|^9.1",
-        "portavice/laravel-pint-config": "^2.0"
+        "portavice/laravel-pint-config": "^1.0|^2.0"
     },
     "config": {
         "sort-packages": true,
