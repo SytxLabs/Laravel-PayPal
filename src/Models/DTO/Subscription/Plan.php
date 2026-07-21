@@ -118,6 +118,7 @@ class Plan implements JsonSerializable
 
     public function addBillingCycle(BillingCycle $billingCycle): self
     {
+        $this->billingCycles ??= [];
         $this->billingCycles[] = $billingCycle;
         return $this;
     }

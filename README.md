@@ -103,6 +103,30 @@ return $subscription->approveSubscriptionRedirect(); // single user approval
 
 If you already have a PayPal plan, skip product/plan creation with `->setPlanId('P-XXX')`.
 
+#### Multiple recurring prices
+
+A plan can carry several billing cycles (e.g. a trial followed by the regular
+price, or tiered pricing). Add them with `RecurringPrice` value objects; the
+billing-cycle `sequence` is assigned automatically in insertion order.
+
+```php
+use SytxLabs\PayPal\Models\DTO\Subscription\RecurringPrice;
+use SytxLabs\PayPal\Enums\DTO\Subscription\IntervalUnit;
+use SytxLabs\PayPal\Enums\DTO\Subscription\TenureType;
+
+$subscription = (new PayPalSubscription())
+    ->setCatalogProduct((new CatalogProduct())->setName('Pro Service'))
+    ->addRecurringPrices([
+        new RecurringPrice(new Money('EUR', '0.00'), IntervalUnit::MONTH, 1, 1, TenureType::TRIAL), // 1-month free trial
+        new RecurringPrice(new Money('EUR', '9.99'), IntervalUnit::MONTH),                          // regular monthly price
+    ])
+    ->setSubscriber((new Subscriber())->setEmailAddress('customer@example.com'))
+    ->createSubscription();
+```
+
+`addRecurringPrice(RecurringPrice $price)` adds one, `addRecurringPrices([...])` adds many.
+`setRecurringPrice(...)` is the single-value shorthand (also additive when called repeatedly).
+
 ### Manage the subscription
 ```php
 $subscription->getSubscriptionFromPayPal('I-XXX');

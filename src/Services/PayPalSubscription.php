@@ -20,12 +20,10 @@ use SytxLabs\PayPal\Exception\CreateSubscriptionException;
 use SytxLabs\PayPal\Models\DTO\LinkDescription;
 use SytxLabs\PayPal\Models\DTO\Money;
 use SytxLabs\PayPal\Models\DTO\Product;
-use SytxLabs\PayPal\Models\DTO\Subscription\BillingCycle;
 use SytxLabs\PayPal\Models\DTO\Subscription\CatalogProduct;
-use SytxLabs\PayPal\Models\DTO\Subscription\Frequency;
 use SytxLabs\PayPal\Models\DTO\Subscription\PaymentPreferences;
 use SytxLabs\PayPal\Models\DTO\Subscription\Plan;
-use SytxLabs\PayPal\Models\DTO\Subscription\PricingScheme;
+use SytxLabs\PayPal\Models\DTO\Subscription\RecurringPrice;
 use SytxLabs\PayPal\Models\DTO\Subscription\Subscriber;
 use SytxLabs\PayPal\Models\DTO\Subscription\Subscription;
 use SytxLabs\PayPal\Models\DTO\Subscription\SubscriptionApplicationContext;
@@ -80,6 +78,11 @@ class PayPalSubscription extends PayPal
         return $this;
     }
 
+    public function getProductId(): ?string
+    {
+        return $this->productId;
+    }
+
     public function setPlan(?Plan $plan): self
     {
         $this->plan = $plan;
@@ -93,19 +96,43 @@ class PayPalSubscription extends PayPal
     }
 
     /**
-     * Convenience: set the recurring price of the plan with a single REGULAR billing cycle.
+     * Convenience: append a recurring price to the plan as a billing cycle.
+     * Repeated calls add further cycles (e.g., TRIAL then REGULAR, or tiered pricing).
      */
-    public function setRecurringPrice(Money $price, IntervalUnit $intervalUnit, int $intervalCount = 1, int $totalCycles = 0): self
+    public function setRecurringPrice(Money $price, IntervalUnit $intervalUnit, int $intervalCount = 1, int $totalCycles = 0, TenureType $tenureType = TenureType::REGULAR): self
     {
         $this->plan ??= new Plan();
-        $this->plan->addBillingCycle(
-            (new BillingCycle())
-                ->setTenureType(TenureType::REGULAR)
-                ->setSequence((count($this->plan->getBillingCycles() ?? [])) + 1)
-                ->setTotalCycles($totalCycles)
-                ->setFrequency(new Frequency($intervalUnit, $intervalCount))
-                ->setPricingScheme((new PricingScheme())->setFixedPrice($price))
-        );
+        $this->plan->setBillingCycles(null);
+        return $this->addRecurringPrice(new RecurringPrice($price, $intervalUnit, $intervalCount, $totalCycles, $tenureType));
+    }
+
+    /**
+     * Append a single recurring price (billing cycle) to the plan.
+     * The billing-cycle sequence is assigned automatically in insertion order.
+     */
+    public function addRecurringPrice(RecurringPrice $recurringPrice): self
+    {
+        $this->plan ??= new Plan();
+        $this->plan->addBillingCycle($recurringPrice->toBillingCycle((count($this->plan->getBillingCycles() ?? [])) + 1));
+        return $this;
+    }
+
+    /**
+     * Append several recurring prices (billing cycles) to the plan in order.
+     *
+     * @param  RecurringPrice[]  $recurringPrices
+     */
+    public function addRecurringPrices(array $recurringPrices): self
+    {
+        foreach ($recurringPrices as $recurringPrice) {
+            $this->addRecurringPrice($recurringPrice);
+        }
+        return $this;
+    }
+
+    public function setOneTimeProduct(Product $product): self
+    {
+        $this->oneTimeProducts = collect([$product]);
         return $this;
     }
 
@@ -166,11 +193,7 @@ class PayPalSubscription extends PayPal
 
     private function resolveCurrency(): string
     {
-        $cycle = ($this->plan?->getBillingCycles() ?? [])[0] ?? null;
-        return $cycle?->getPricingScheme()?->getFixedPrice()?->getCurrencyCode()
-            ?? $this->oneTimeProducts->first()?->currencyCode
-            ?? $this->currency
-            ?? 'USD';
+        return (($this->plan?->getBillingCycles() ?? [])[0] ?? null)?->getPricingScheme()?->getFixedPrice()?->getCurrencyCode() ?? $this->oneTimeProducts->first()?->currencyCode ?? $this->currency ?? 'USD';
     }
 
     /**
@@ -186,10 +209,7 @@ class PayPalSubscription extends PayPal
             throw new RuntimeException('No catalog product set');
         }
         $this->payPalRequestId ??= $this->generateRequestId();
-        $apiResponse = $client
-            ->withHeader('PayPal-Request-Id', $this->payPalRequestId)
-            ->withHeader('Prefer', 'return=representation')
-            ->post('v1/catalogs/products', $this->catalogProduct);
+        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)->withHeader('Prefer', 'return=representation')->post('v1/catalogs/products', $this->catalogProduct);
         $result = $apiResponse->json();
         if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {
             $this->log('CreateCatalogProductException: ' . ($apiResponse->getReasonPhrase() ?? 'An error occurred'), [
@@ -226,25 +246,18 @@ class PayPalSubscription extends PayPal
         // One-time payment collected together with the subscription approval as setup_fee.
         $oneTimeTotal = $this->getOneTimeTotal();
         if ($oneTimeTotal > 0) {
-            $currency = $this->resolveCurrency();
             $preferences = $this->plan->getPaymentPreferences() ?? new PaymentPreferences();
             if ($preferences->getSetupFee() === null) {
-                $preferences->setSetupFee(new Money($currency, number_format($oneTimeTotal, 2, '.', '')));
+                $preferences->setSetupFee(new Money($this->resolveCurrency(), number_format($oneTimeTotal, 2, '.', '')));
             }
             $this->plan->setPaymentPreferences($preferences);
         }
 
         $this->payPalRequestId ??= $this->generateRequestId();
-        $apiResponse = $client
-            ->withHeader('PayPal-Request-Id', $this->payPalRequestId)
-            ->withHeader('Prefer', 'return=representation')
-            ->post('v1/billing/plans', $this->plan);
+        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)->withHeader('Prefer', 'return=representation')->post('v1/billing/plans', $this->plan);
         $result = $apiResponse->json();
         if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {
-            $this->log('CreatePlanException: ' . ($apiResponse->getReasonPhrase() ?? 'An error occurred'), [
-                'response' => $apiResponse->body(),
-                'plan' => $this->plan,
-            ]);
+            $this->log('CreatePlanException: ' . ($apiResponse->getReasonPhrase() ?? 'An error occurred'), ['response' => $apiResponse->body(), 'plan' => $this->plan]);
             throw new CreatePlanException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
         $this->plan->setId($result['id']);
@@ -254,7 +267,7 @@ class PayPalSubscription extends PayPal
 
     /**
      * Orchestrates catalog product -> plan (with setup_fee) -> subscription.
-     * Only the final subscription create yields an approve link, so the user
+     * Only the final subscription creation yields an approval link, so the user
      * approves exactly once for both the one-time payment and the subscription.
      *
      * @throws CreateSubscriptionException|CreatePlanException|CreateCatalogProductException|RuntimeException|Exception
@@ -271,19 +284,9 @@ class PayPalSubscription extends PayPal
         if ($this->planId === null) {
             throw new RuntimeException('No plan id available for subscription');
         }
-
-        $subscription = (new Subscription())
-            ->setPlanId($this->planId)
-            ->setSubscriber($this->subscriber)
-            ->setApplicationContext($this->getApplicationContext())
-            ->setCustomId($this->customId)
-            ->setQuantity($this->quantity);
-
+        $subscription = (new Subscription())->setPlanId($this->planId)->setSubscriber($this->subscriber)->setApplicationContext($this->getApplicationContext())->setCustomId($this->customId)->setQuantity($this->quantity);
         $this->payPalRequestId ??= $this->generateRequestId();
-        $apiResponse = $client
-            ->withHeader('PayPal-Request-Id', $this->payPalRequestId)
-            ->withHeader('Prefer', 'return=representation')
-            ->post('v1/billing/subscriptions', $subscription);
+        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)->withHeader('Prefer', 'return=representation')->post('v1/billing/subscriptions', $subscription);
         $result = $apiResponse->json();
         if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {
             $this->log('CreateSubscriptionException: ' . ($apiResponse->getReasonPhrase() ?? 'An error occurred'), [
@@ -293,15 +296,12 @@ class PayPalSubscription extends PayPal
             ]);
             throw new CreateSubscriptionException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
-        $subscription->setId($result['id']);
-        $subscription->setStatus(SubscriptionStatus::tryFrom($result['status'] ?? ''));
+        $subscription->setId($result['id'])->setStatus(SubscriptionStatus::tryFrom($result['status'] ?? ''));
         $links = [];
         foreach ($result['links'] ?? [] as $link) {
             $links[] = (new LinkDescription($link['href'], $link['rel']))->setMethod(LinkHTTPMethod::tryFrom($link['method'] ?? ''));
         }
-        $subscription->setLinks($links);
-        $subscription->setCreateTime($result['create_time'] ?? null);
-        $this->subscription = $subscription;
+        $this->subscription = $subscription->setLinks($links)->setCreateTime($result['create_time'] ?? null);
         $this->saveSubscriptionToDatabase($this->subscription, $this->payPalRequestId, $this->productId);
         return $this;
     }
@@ -354,10 +354,7 @@ class PayPalSubscription extends PayPal
         }
         $apiResponse = $client->get('v1/billing/subscriptions/' . $id);
         if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
-            $this->log('Failed to get subscription from PayPal', [
-                'response' => $apiResponse->body(),
-                'subscription_id' => $id,
-            ]);
+            $this->log('Failed to get subscription from PayPal', ['response' => $apiResponse->body(), 'subscription_id' => $id]);
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->subscription = Subscription::fromArray($apiResponse->json());
@@ -432,14 +429,9 @@ class PayPalSubscription extends PayPal
         if ($this->subscription === null || $this->subscription->getId() === null) {
             throw new RuntimeException('Subscription not found');
         }
-        $apiResponse = $client->post('v1/billing/subscriptions/' . $this->subscription->getId() . '/' . $action, [
-            'reason' => $reason ?? ucfirst($action) . ' by merchant',
-        ]);
+        $apiResponse = $client->post('v1/billing/subscriptions/' . $this->subscription->getId() . '/' . $action, ['reason' => $reason ?? ucfirst($action) . ' by merchant']);
         if (!in_array($apiResponse->getStatusCode(), [200, 201, 204])) {
-            $this->log('Failed to ' . $action . ' subscription', [
-                'response' => $apiResponse->body(),
-                'subscription_id' => $this->subscription->getId(),
-            ]);
+            $this->log('Failed to ' . $action . ' subscription', ['response' => $apiResponse->body(), 'subscription_id' => $this->subscription->getId()]);
             throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
         }
         $this->getSubscriptionFromPayPal();
