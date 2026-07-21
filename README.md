@@ -70,6 +70,56 @@ $paypalOrder->captureOrder();
 $paypalOrder->captureOrder()->getOrderStatus();
 ```
 
+## PayPal Subscriptions
+
+Subscriptions let you charge a recurring amount. To combine a **one-time payment** with
+the start of a subscription in a **single PayPal approval**, add the one-time products via
+`addOneTimeProduct()` — their sum becomes the plan's `setup_fee`, which PayPal charges once
+when the subscriber approves. Only the subscription create step produces an approve link,
+so the user approves exactly once for both the one-time amount and the recurring plan.
+
+The service orchestrates the full chain automatically: it creates the catalog product,
+then the billing plan (with the `setup_fee`), then the subscription.
+
+```php
+use SytxLabs\PayPal\Services\PayPalSubscription;
+use SytxLabs\PayPal\Models\DTO\Money;
+use SytxLabs\PayPal\Models\DTO\Product;
+use SytxLabs\PayPal\Models\DTO\Subscription\CatalogProduct;
+use SytxLabs\PayPal\Models\DTO\Subscription\Subscriber;
+use SytxLabs\PayPal\Enums\DTO\Subscription\CatalogProductType;
+use SytxLabs\PayPal\Enums\DTO\Subscription\IntervalUnit;
+
+$subscription = (new PayPalSubscription())
+    ->setCatalogProduct((new CatalogProduct())->setName('Pro Service')->setType(CatalogProductType::SERVICE))
+    ->setRecurringPrice(new Money('EUR', '9.99'), IntervalUnit::MONTH, 1) // recurring plan
+    ->addOneTimeProduct(new Product('Setup / Onboarding', 49.00, 1, 'EUR')) // one-time -> setup_fee
+    ->addOneTimeProduct(new Product('Hardware', 20.00, 1, 'EUR'))           // summed into setup_fee
+    ->setSubscriber((new Subscriber())->setEmailAddress('customer@example.com'))
+    ->createSubscription();
+
+return $subscription->approveSubscriptionRedirect(); // single user approval
+```
+
+If you already have a PayPal plan, skip product/plan creation with `->setPlanId('P-XXX')`.
+
+### Manage the subscription
+```php
+$subscription->getSubscriptionFromPayPal('I-XXX');
+$subscription->getSubscriptionStatus();
+$subscription->suspend('Customer request');
+$subscription->activate();
+$subscription->cancel('No longer needed');
+```
+
+### Webhooks
+
+Set `PAYPAL_WEBHOOK_ID` and enable the built-in route with
+`PAYPAL_WEBHOOK_ROUTE_ENABLED=true` (path via `PAYPAL_WEBHOOK_PATH`, default
+`paypal/webhook`). Incoming webhooks are signature-verified against PayPal, subscription
+status changes are persisted, and a `SytxLabs\PayPal\Events\PayPalWebhookReceived` event is
+dispatched for you to listen on.
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE) for more information.

@@ -4,6 +4,7 @@ namespace SytxLabs\PayPal\Services;
 
 use Exception;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Log;
 use SytxLabs\PayPal\Models\DTO\OAuthToken;
@@ -19,7 +20,12 @@ class PayPal
 
     private function buildNewClient(): PendingRequest
     {
-        $client = (new PendingRequest())->baseUrl($this->mode->getPayPalEnvironmentURL())->acceptJson();
+        // Resolve through the container's HTTP client factory when available so that
+        // Http::fake() can intercept requests (e.g. in tests); fall back otherwise.
+        $pendingRequest = (function_exists('app') && app()->bound(Factory::class))
+            ? app(Factory::class)->baseUrl($this->mode->getPayPalEnvironmentURL())
+            : (new PendingRequest())->baseUrl($this->mode->getPayPalEnvironmentURL());
+        $client = $pendingRequest->acceptJson();
         if (($this->config['timeout'] ?? null) !== null) {
             $client->timeout($this->config['timeout']);
         }
