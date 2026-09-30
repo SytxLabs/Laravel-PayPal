@@ -4,10 +4,15 @@
 
 namespace SytxLabs\PayPal\Services;
 
+use DateTimeInterface;
 use Exception;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\ResponseFactory;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use RuntimeException;
 use SytxLabs\PayPal\Enums\DTO\LinkHTTPMethod;
@@ -45,6 +50,7 @@ class PayPalSubscription extends PayPal
     private ?SubscriptionApplicationContext $applicationContext = null;
     private ?string $customId = null;
     private ?string $quantity = null;
+    private ?Model $subscribable = null;
 
     private ?string $payPalRequestId = null;
     private ?Subscription $subscription = null;
@@ -93,6 +99,11 @@ class PayPalSubscription extends PayPal
     {
         $this->planId = $planId;
         return $this;
+    }
+
+    public function getPlanId(): ?string
+    {
+        return $this->planId;
     }
 
     /**
@@ -166,6 +177,15 @@ class PayPalSubscription extends PayPal
         return $this;
     }
 
+    /**
+     * Link the stored subscription to a model (e.g. the subscribing user) via the `subscribable` morph.
+     */
+    public function setSubscribable(?Model $subscribable): self
+    {
+        $this->subscribable = $subscribable;
+        return $this;
+    }
+
     private function getApplicationContext(): SubscriptionApplicationContext
     {
         if ($this->applicationContext === null) {
@@ -197,14 +217,71 @@ class PayPalSubscription extends PayPal
     }
 
     /**
-     * @throws CreateCatalogProductException|RuntimeException|Exception
+     * @throws RuntimeException|Exception
      */
-    public function createCatalogProduct(): self
+    private function client(): PendingRequest
     {
         $client = $this->controller ?? $this->build()->controller;
         if ($client === null) {
             throw new RuntimeException('PayPal client not found');
         }
+        return $client;
+    }
+
+    /**
+     * Log and throw when PayPal did not answer with one of the expected status codes.
+     *
+     * @param  int[]  $expected
+     *
+     * @throws RuntimeException
+     */
+    private function ensureSuccessful(Response $apiResponse, string $message, array $context = [], array $expected = [200, 201, 204]): Response
+    {
+        if (!in_array($apiResponse->getStatusCode(), $expected, true)) {
+            $this->log($message, ['response' => $apiResponse->body()] + $context);
+            throw new RuntimeException($message . ': ' . ($apiResponse->getReasonPhrase() ?: 'An error occurred'));
+        }
+        return $apiResponse;
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    private function requireSubscriptionId(): string
+    {
+        $id = $this->subscription?->getId();
+        if ($id === null) {
+            throw new RuntimeException('Subscription not found');
+        }
+        return $id;
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    private function requirePlanId(?string $planId): string
+    {
+        $planId ??= $this->planId ?? $this->subscription?->getPlanId();
+        if ($planId === null) {
+            throw new RuntimeException('No plan id available');
+        }
+        return $planId;
+    }
+
+    /**
+     * @return LinkDescription[]
+     */
+    private static function parseLinks(array $links): array
+    {
+        return array_map(static fn (array $link) => (new LinkDescription($link['href'], $link['rel']))->setMethod(LinkHTTPMethod::tryFrom($link['method'] ?? '')), $links);
+    }
+
+    /**
+     * @throws CreateCatalogProductException|RuntimeException|Exception
+     */
+    public function createCatalogProduct(): self
+    {
+        $client = $this->client();
         if ($this->catalogProduct === null) {
             throw new RuntimeException('No catalog product set');
         }
@@ -228,10 +305,7 @@ class PayPalSubscription extends PayPal
      */
     public function createPlan(): self
     {
-        $client = $this->controller ?? $this->build()->controller;
-        if ($client === null) {
-            throw new RuntimeException('PayPal client not found');
-        }
+        $client = $this->client();
         if ($this->plan === null || empty($this->plan->getBillingCycles())) {
             throw new RuntimeException('No plan with billing cycles set. Use setPlan() or setRecurringPrice().');
         }
@@ -274,10 +348,7 @@ class PayPalSubscription extends PayPal
      */
     public function createSubscription(): self
     {
-        $client = $this->controller ?? $this->build()->controller;
-        if ($client === null) {
-            throw new RuntimeException('PayPal client not found');
-        }
+        $client = $this->client();
         if ($this->planId === null) {
             $this->createPlan();
         }
@@ -297,12 +368,8 @@ class PayPalSubscription extends PayPal
             throw new CreateSubscriptionException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred', $apiResponse);
         }
         $subscription->setId($result['id'])->setStatus(SubscriptionStatus::tryFrom($result['status'] ?? ''));
-        $links = [];
-        foreach ($result['links'] ?? [] as $link) {
-            $links[] = (new LinkDescription($link['href'], $link['rel']))->setMethod(LinkHTTPMethod::tryFrom($link['method'] ?? ''));
-        }
-        $this->subscription = $subscription->setLinks($links)->setCreateTime($result['create_time'] ?? null);
-        $this->saveSubscriptionToDatabase($this->subscription, $this->payPalRequestId, $this->productId);
+        $this->subscription = $subscription->setLinks(self::parseLinks($result['links'] ?? []))->setCreateTime($result['create_time'] ?? null);
+        $this->saveSubscriptionToDatabase($this->subscription, $this->payPalRequestId, $this->productId, $this->subscribable);
         return $this;
     }
 
@@ -316,6 +383,7 @@ class PayPalSubscription extends PayPal
     {
         if ($subscription instanceof SubscriptionModel) {
             $this->payPalRequestId = $subscription->request_id;
+            $this->productId ??= $subscription->product_id;
             $subscription = $subscription->payPalSubscription;
         }
         $this->subscription = $subscription;
@@ -331,8 +399,7 @@ class PayPalSubscription extends PayPal
     {
         $dbSubscription = $this->loadSubscriptionFromDatabase($id);
         if ($dbSubscription !== null) {
-            $this->subscription = $dbSubscription->payPalSubscription;
-            $this->payPalRequestId = $dbSubscription->request_id;
+            $this->setSubscription($dbSubscription);
             return $this->subscription;
         }
         $this->subscription = (new Subscription())->setId($id);
@@ -344,22 +411,35 @@ class PayPalSubscription extends PayPal
      */
     public function getSubscriptionFromPayPal(?string $id = null): Subscription
     {
-        $client = $this->controller ?? $this->build()->controller;
-        if ($client === null) {
-            throw new RuntimeException('PayPal client not found');
-        }
+        $client = $this->client();
         $id ??= $this->subscription?->getId();
         if ($id === null) {
             throw new RuntimeException('Subscription not found');
         }
-        $apiResponse = $client->get('v1/billing/subscriptions/' . $id);
-        if (!in_array($apiResponse->getStatusCode(), [200, 201])) {
-            $this->log('Failed to get subscription from PayPal', ['response' => $apiResponse->body(), 'subscription_id' => $id]);
-            throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
-        }
+        $apiResponse = $this->ensureSuccessful($client->get('v1/billing/subscriptions/' . $id), 'Failed to get subscription from PayPal', ['subscription_id' => $id], [200]);
         $this->subscription = Subscription::fromArray($apiResponse->json());
-        $this->saveSubscriptionToDatabase($this->subscription, $this->payPalRequestId, $this->productId);
+        $this->saveSubscriptionToDatabase($this->subscription, $this->payPalRequestId, $this->productId, $this->subscribable);
         return $this->subscription;
+    }
+
+    /**
+     * Handle the buyer returning from PayPal to the success_route after approving.
+     * PayPal appends `subscription_id` (and `ba_token`, `token`) to the return URL; the current
+     * subscription state is fetched from PayPal and persisted.
+     *
+     * @throws Exception
+     */
+    public function handleApprovalReturn(array|Request|null $request = null): Subscription
+    {
+        if ($request === null && function_exists('request') && app()->bound('request')) {
+            $request = request();
+        }
+        $subscriptionId = $request instanceof Request ? $request->query('subscription_id', $request->input('subscription_id')) : ($request['subscription_id'] ?? null);
+        if (!is_string($subscriptionId) || $subscriptionId === '') {
+            throw new RuntimeException('No subscription_id in approval return request');
+        }
+        $this->getSubscriptionFromId($subscriptionId);
+        return $this->getSubscriptionFromPayPal($subscriptionId);
     }
 
     /**
@@ -422,19 +502,153 @@ class PayPalSubscription extends PayPal
      */
     private function lifecycleAction(string $action, ?string $reason): self
     {
-        $client = $this->controller ?? $this->build()->controller;
-        if ($client === null) {
-            throw new RuntimeException('PayPal client not found');
-        }
-        if ($this->subscription === null || $this->subscription->getId() === null) {
-            throw new RuntimeException('Subscription not found');
-        }
-        $apiResponse = $client->post('v1/billing/subscriptions/' . $this->subscription->getId() . '/' . $action, ['reason' => $reason ?? ucfirst($action) . ' by merchant']);
-        if (!in_array($apiResponse->getStatusCode(), [200, 201, 204])) {
-            $this->log('Failed to ' . $action . ' subscription', ['response' => $apiResponse->body(), 'subscription_id' => $this->subscription->getId()]);
-            throw new RuntimeException($apiResponse->getReasonPhrase() ?? $apiResponse->getBody() ?? 'An error occurred');
-        }
+        $client = $this->client();
+        $id = $this->requireSubscriptionId();
+        $this->ensureSuccessful(
+            $client->post('v1/billing/subscriptions/' . $id . '/' . $action, ['reason' => $reason ?? ucfirst($action) . ' by merchant']),
+            'Failed to ' . $action . ' subscription',
+            ['subscription_id' => $id],
+        );
         $this->getSubscriptionFromPayPal();
+        return $this;
+    }
+
+    /**
+     * Change the plan and/or quantity of the subscription.
+     * If PayPal requires the buyer to consent, the new approve link is available via getApproveSubscriptionRoute().
+     * The stored plan id is only updated once PayPal reports the change (BILLING.SUBSCRIPTION.UPDATED webhook or a refresh).
+     *
+     * @return bool true when the buyer has to approve the change
+     *
+     * @throws Exception
+     */
+    public function revise(?string $planId = null, ?string $quantity = null, ?Money $shippingAmount = null): bool
+    {
+        $client = $this->client();
+        $id = $this->requireSubscriptionId();
+        if ($planId === null && $quantity === null && $shippingAmount === null) {
+            throw new RuntimeException('Nothing to revise: pass a plan id, quantity or shipping amount');
+        }
+        $body = array_filter([
+            'plan_id' => $planId,
+            'quantity' => $quantity,
+            'shipping_amount' => $shippingAmount,
+            'application_context' => $this->getApplicationContext(),
+        ], static fn ($value) => $value !== null);
+        $apiResponse = $this->ensureSuccessful($client->post('v1/billing/subscriptions/' . $id . '/revise', $body), 'Failed to revise subscription', ['subscription_id' => $id], [200]);
+        $links = self::parseLinks($apiResponse->json('links') ?? []);
+        $needsApproval = array_filter($links, static fn (LinkDescription $link) => strtolower($link->getRel()) === 'approve') !== [];
+        if ($needsApproval) {
+            $this->subscription->setLinks($links);
+            $this->saveSubscriptionToDatabase($this->subscription);
+        }
+        return $needsApproval;
+    }
+
+    /**
+     * Capture the outstanding balance (e.g. after failed payments) of the subscription.
+     *
+     * @return array<string,mixed> the resulting PayPal transaction
+     *
+     * @throws Exception
+     */
+    public function captureOutstandingBalance(Money $amount, string $note = 'Outstanding balance'): array
+    {
+        $client = $this->client();
+        $id = $this->requireSubscriptionId();
+        $apiResponse = $this->ensureSuccessful($client->withHeader('PayPal-Request-Id', $this->generateRequestId())->post('v1/billing/subscriptions/' . $id . '/capture', [
+            'note' => $note,
+            'capture_type' => 'OUTSTANDING_BALANCE',
+            'amount' => $amount,
+        ]), 'Failed to capture outstanding balance', ['subscription_id' => $id], [200, 201, 202]);
+        return $apiResponse->json() ?? [];
+    }
+
+    /**
+     * List the payments of the subscription within a time range.
+     *
+     * @return array<int,array<string,mixed>>
+     *
+     * @throws Exception
+     */
+    public function listTransactions(DateTimeInterface|string $startTime, DateTimeInterface|string|null $endTime = null): array
+    {
+        $client = $this->client();
+        $id = $this->requireSubscriptionId();
+        $format = static fn (DateTimeInterface|string $time) => $time instanceof DateTimeInterface ? Carbon::instance($time)->utc()->format('Y-m-d\TH:i:s\Z') : $time;
+        $apiResponse = $this->ensureSuccessful($client->get('v1/billing/subscriptions/' . $id . '/transactions', [
+            'start_time' => $format($startTime),
+            'end_time' => $format($endTime ?? Carbon::now()),
+        ]), 'Failed to list subscription transactions', ['subscription_id' => $id], [200]);
+        return $apiResponse->json('transactions') ?? [];
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function getPlanFromPayPal(?string $planId = null): Plan
+    {
+        $client = $this->client();
+        $planId = $this->requirePlanId($planId);
+        $apiResponse = $this->ensureSuccessful($client->get('v1/billing/plans/' . $planId), 'Failed to get plan from PayPal', ['plan_id' => $planId], [200]);
+        $this->plan = Plan::fromArray($apiResponse->json());
+        $this->planId = $this->plan->getId();
+        return $this->plan;
+    }
+
+    /**
+     * @return Plan[]
+     *
+     * @throws Exception
+     */
+    public function listPlans(?string $productId = null, int $page = 1, int $pageSize = 20): array
+    {
+        $client = $this->client();
+        $query = array_filter(['product_id' => $productId ?? $this->productId, 'page' => $page, 'page_size' => $pageSize, 'total_required' => 'true'], static fn ($value) => $value !== null);
+        $apiResponse = $this->ensureSuccessful($client->get('v1/billing/plans', $query), 'Failed to list plans', $query, [200]);
+        return array_map(static fn (array $plan) => Plan::fromArray($plan), $apiResponse->json('plans') ?? []);
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function activatePlan(?string $planId = null): self
+    {
+        $planId = $this->requirePlanId($planId);
+        $this->ensureSuccessful($this->client()->post('v1/billing/plans/' . $planId . '/activate'), 'Failed to activate plan', ['plan_id' => $planId]);
+        return $this;
+    }
+
+    /**
+     * New subscriptions can no longer use a deactivated plan; existing ones keep running.
+     *
+     * @throws Exception
+     */
+    public function deactivatePlan(?string $planId = null): self
+    {
+        $planId = $this->requirePlanId($planId);
+        $this->ensureSuccessful($this->client()->post('v1/billing/plans/' . $planId . '/deactivate'), 'Failed to deactivate plan', ['plan_id' => $planId]);
+        return $this;
+    }
+
+    /**
+     * Change the price of billing cycles. Keys are the billing-cycle sequence (1-based).
+     *
+     * @param  array<int,Money>  $pricesBySequence
+     *
+     * @throws Exception
+     */
+    public function updatePlanPricing(array $pricesBySequence, ?string $planId = null): self
+    {
+        $planId = $this->requirePlanId($planId);
+        if ($pricesBySequence === []) {
+            throw new RuntimeException('No prices to update');
+        }
+        $schemes = [];
+        foreach ($pricesBySequence as $sequence => $price) {
+            $schemes[] = ['billing_cycle_sequence' => (int) $sequence, 'pricing_scheme' => ['fixed_price' => $price]];
+        }
+        $this->ensureSuccessful($this->client()->post('v1/billing/plans/' . $planId . '/update-pricing-schemes', ['pricing_schemes' => $schemes]), 'Failed to update plan pricing', ['plan_id' => $planId]);
         return $this;
     }
 
@@ -458,10 +672,7 @@ class PayPalSubscription extends PayPal
      */
     public function verifyWebhookSignature(array $headers, array|string $body): bool
     {
-        $client = $this->controller ?? $this->build()->controller;
-        if ($client === null) {
-            throw new RuntimeException('PayPal client not found');
-        }
+        $client = $this->client();
         $webhookId = $this->config['webhook_id'] ?? null;
         if (empty($webhookId)) {
             throw new RuntimeException('PayPal webhook_id is not configured');

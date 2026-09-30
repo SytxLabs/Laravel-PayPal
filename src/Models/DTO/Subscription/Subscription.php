@@ -31,6 +31,8 @@ class Subscription implements JsonSerializable
     private ?Plan $plan = null;
     #[ArrayMappingAttribute('status', SubscriptionStatus::class)]
     private ?SubscriptionStatus $status = null;
+    #[ArrayMappingAttribute('billing_info', BillingInfo::class)]
+    private ?BillingInfo $billingInfo = null;
     #[ArrayMappingAttribute('create_time')]
     private ?string $createTime = null;
     #[ArrayMappingAttribute('update_time')]
@@ -138,6 +140,17 @@ class Subscription implements JsonSerializable
     public function setStatus(?SubscriptionStatus $status): self
     {
         $this->status = $status;
+        return $this;
+    }
+
+    public function getBillingInfo(): ?BillingInfo
+    {
+        return $this->billingInfo;
+    }
+
+    public function setBillingInfo(?BillingInfo $billingInfo): self
+    {
+        $this->billingInfo = $billingInfo;
         return $this;
     }
 

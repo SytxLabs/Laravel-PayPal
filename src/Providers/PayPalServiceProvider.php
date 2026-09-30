@@ -2,8 +2,10 @@
 
 namespace SytxLabs\PayPal\Providers;
 
+use Composer\InstalledVersions;
 use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Support\ServiceProvider;
+use SytxLabs\PayPal\Console\Commands\PayPalSubscriptionCommand;
 use SytxLabs\PayPal\Facades\PayPal;
 use SytxLabs\PayPal\Facades\PayPalOrder;
 use SytxLabs\PayPal\Services\PayPalSubscription;
@@ -26,7 +28,12 @@ class PayPalServiceProvider extends ServiceProvider
                     __DIR__ . '/../../database/migrations' => database_path('migrations'),
                 ], 'sytxlabs-paypal-migrations');
             }
-            AboutCommand::add('SytxLabs Laravel Paypal Package', static fn () => ['Version' => '1.0.0', 'Author' => 'SytxLabs']);
+            AboutCommand::add('SytxLabs Laravel Paypal Package', static fn () => [
+                'Version' => InstalledVersions::isInstalled('sytxlabs/laravel-paypal') ? (InstalledVersions::getPrettyVersion('sytxlabs/laravel-paypal') ?? 'unknown') : 'unknown',
+                'Author' => 'SytxLabs',
+            ]);
+
+            $this->commands([PayPalSubscriptionCommand::class]);
         }
 
         if ((bool) config('paypal.webhook.route_enabled', false) === true) {

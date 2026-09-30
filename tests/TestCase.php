@@ -54,6 +54,7 @@ abstract class TestCase extends Orchestra
                 'oauth_table' => 'sytxlabs_paypal_oauth_tokens',
                 'order_table' => 'sytxlabs_paypal_orders',
                 'subscription_table' => 'sytxlabs_paypal_subscriptions',
+                'webhook_event_table' => 'sytxlabs_paypal_webhook_events',
             ],
         ]);
     }

@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 use SytxLabs\PayPal\Enums\DTO\Subscription\SubscriptionStatus;
 use SytxLabs\PayPal\Facades\Accessor\PayPalSubscriptionFacadeAccessor;
 use SytxLabs\PayPal\Facades\PayPal;
+use SytxLabs\PayPal\Models\DTO\LinkDescription;
 use SytxLabs\PayPal\Models\DTO\Subscription\Subscription as PayPalSubscription;
 
 /**
@@ -21,6 +22,14 @@ use SytxLabs\PayPal\Models\DTO\Subscription\Subscription as PayPalSubscription;
  * @property ?string $custom_id
  * @property ?array $links
  * @property ?string $request_id
+ * @property ?string $quantity
+ * @property ?Carbon $next_billing_time
+ * @property ?Carbon $last_payment_time
+ * @property ?string $last_payment_amount
+ * @property ?string $last_payment_currency
+ * @property int $failed_payments_count
+ * @property ?string $subscribable_type
+ * @property ?string $subscribable_id
  *
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -40,12 +49,28 @@ class Subscription extends Model
         'custom_id',
         'links',
         'request_id',
+        'quantity',
+        'next_billing_time',
+        'last_payment_time',
+        'last_payment_amount',
+        'last_payment_currency',
+        'failed_payments_count',
+        'subscribable_type',
+        'subscribable_id',
     ];
 
     protected $casts = [
         'links' => 'array',
         'status' => SubscriptionStatus::class,
+        'next_billing_time' => 'datetime',
+        'last_payment_time' => 'datetime',
+        'failed_payments_count' => 'integer',
     ];
+
+    public function isActive(): bool
+    {
+        return $this->status === SubscriptionStatus::ACTIVE;
+    }
 
     public function getTable(): string
     {
@@ -83,10 +108,11 @@ class Subscription extends Model
                 ->setId($this->subscription_id)
                 ->setPlanId($this->plan_id)
                 ->setCustomId($this->custom_id)
+                ->setQuantity($this->quantity)
                 ->setStatus($this->status)
-                ->setLinks($this->links)
-                ->setCreateTime($this->created_at->format('c'))
-                ->setUpdateTime($this->updated_at->format('c')),
+                ->setLinks($this->links === null ? null : array_map(static fn ($link) => is_array($link) ? LinkDescription::fromArray($link) : $link, $this->links))
+                ->setCreateTime($this->created_at?->format('c'))
+                ->setUpdateTime($this->updated_at?->format('c')),
             function (PayPalSubscription $subscription) {
                 $this->subscription_id = $subscription->getId();
                 $this->plan_id = $subscription->getPlanId();
