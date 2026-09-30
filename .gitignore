@@ -5,3 +5,4 @@ tests/logs
 tests/deduplicate.log
 .phpunit.cache
 example.php
+composer.lock
