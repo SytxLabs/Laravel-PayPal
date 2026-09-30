@@ -28,6 +28,7 @@ return [
     'webhook' => [
         'route_enabled' => env('PAYPAL_WEBHOOK_ROUTE_ENABLED', false), // Register the built-in webhook route
         'path' => env('PAYPAL_WEBHOOK_PATH', 'paypal/webhook'), // URI for the built-in webhook route
+        'deduplicate' => env('PAYPAL_WEBHOOK_DEDUPLICATE', true), // Require the webhook event table; webhooks are rejected (503) while it is missing
     ],
 
     'logging' => [

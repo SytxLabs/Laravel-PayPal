@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create(config('paypal.database.subscription_table'), static function (Blueprint $table) {
             $table->id();
 
-            $table->text('subscription_id');
+            $table->string('subscription_id', 191)->unique();
             $table->nullableUuidMorphs('subscribable');
             $table->string('plan_id')->nullable();
             $table->string('product_id')->nullable();
@@ -25,6 +25,7 @@ return new class extends Migration
             $table->unsignedInteger('failed_payments_count')->default(0);
             $table->json('links')->nullable();
             $table->text('request_id')->nullable();
+            $table->timestamp('paypal_update_time')->nullable(); // PayPal's update_time of the stored state, guards against out-of-order updates
 
             $table->timestamps();
         });

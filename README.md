@@ -203,15 +203,30 @@ Set `PAYPAL_WEBHOOK_ID` and enable the built-in route with
 `paypal/webhook`). Incoming webhooks are signature-verified against PayPal and every event id
 is handled only once (PayPal retries are answered with `{"status": "duplicate"}`).
 
-| Event | Stored | Dispatched |
-|---|---|---|
-| `BILLING.SUBSCRIPTION.*` | status, plan, quantity, billing info | `PayPalWebhookReceived` |
-| `BILLING.SUBSCRIPTION.PAYMENT.FAILED` | `failed_payments_count` | `PayPalSubscriptionPaymentFailed` |
-| `PAYMENT.SALE.COMPLETED` | last payment, resets `failed_payments_count` | `PayPalSubscriptionPaymentCompleted` |
-| `PAYMENT.SALE.REFUNDED` / `REVERSED` | – | `PayPalSubscriptionPaymentRefunded` |
+| Event                                 | Stored                                       | Dispatched                           |
+|---------------------------------------|----------------------------------------------|--------------------------------------|
+| `BILLING.SUBSCRIPTION.*`              | status, plan, quantity, billing info         | `PayPalWebhookReceived`              |
+| `BILLING.SUBSCRIPTION.PAYMENT.FAILED` | `failed_payments_count`                      | `PayPalSubscriptionPaymentFailed`    |
+| `PAYMENT.SALE.COMPLETED`              | last payment, resets `failed_payments_count` | `PayPalSubscriptionPaymentCompleted` |
+| `PAYMENT.SALE.REFUNDED` / `REVERSED`  | –                                            | `PayPalSubscriptionPaymentRefunded`  |
 
 `PayPalWebhookReceived` is dispatched for every event and carries the stored subscription
 (`$event->subscription`) when one matches. All events live in `SytxLabs\PayPal\Events`.
+
+Processing guarantees:
+
+- **Once per event id:** the event claim and all database changes run in one transaction. A failure
+  or crash rolls both back and PayPal's retry is processed again; a retry of a committed event is
+  answered with `duplicate`.
+- **Events after commit:** the listed events are dispatched after the transaction. The event is
+  already marked as processed then, so a failing listener is *not* retried by PayPal. Use queued
+  listeners (`ShouldQueue`) for work that must not get lost.
+- **No out-of-order regressions:** every stored state remembers PayPal's `update_time`
+  (`paypal_update_time`). An older webhook or API response does not overwrite a newer status, e.g.
+  a delayed `ACTIVATED` after `CANCELLED`. Older sales do not replace the stored last payment.
+- **Event table required:** while the `sytxlabs_paypal_webhook_events` table is missing (or the
+  database is disabled) webhooks are rejected with `503`, so PayPal retries them later instead of
+  being processed twice. Set `PAYPAL_WEBHOOK_DEDUPLICATE=false` to accept webhooks without it.
 
 Processed event ids are stored in the `sytxlabs_paypal_webhook_events` table (configurable via
 `database.webhook_event_table`). Publish and run the migrations after updating:

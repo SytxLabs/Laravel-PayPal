@@ -225,7 +225,7 @@ class PayPalSubscription extends PayPal
         if ($client === null) {
             throw new RuntimeException('PayPal client not found');
         }
-        return $client;
+        return clone $client;
     }
 
     /**
@@ -285,8 +285,7 @@ class PayPalSubscription extends PayPal
         if ($this->catalogProduct === null) {
             throw new RuntimeException('No catalog product set');
         }
-        $this->payPalRequestId ??= $this->generateRequestId();
-        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)->withHeader('Prefer', 'return=representation')->post('v1/catalogs/products', $this->catalogProduct);
+        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->generateRequestId())->withHeader('Prefer', 'return=representation')->post('v1/catalogs/products', $this->catalogProduct);
         $result = $apiResponse->json();
         if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {
             $this->log('CreateCatalogProductException: ' . ($apiResponse->getReasonPhrase() ?? 'An error occurred'), [
@@ -327,8 +326,7 @@ class PayPalSubscription extends PayPal
             $this->plan->setPaymentPreferences($preferences);
         }
 
-        $this->payPalRequestId ??= $this->generateRequestId();
-        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)->withHeader('Prefer', 'return=representation')->post('v1/billing/plans', $this->plan);
+        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->generateRequestId())->withHeader('Prefer', 'return=representation')->post('v1/billing/plans', $this->plan);
         $result = $apiResponse->json();
         if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {
             $this->log('CreatePlanException: ' . ($apiResponse->getReasonPhrase() ?? 'An error occurred'), ['response' => $apiResponse->body(), 'plan' => $this->plan]);
@@ -356,7 +354,7 @@ class PayPalSubscription extends PayPal
             throw new RuntimeException('No plan id available for subscription');
         }
         $subscription = (new Subscription())->setPlanId($this->planId)->setSubscriber($this->subscriber)->setApplicationContext($this->getApplicationContext())->setCustomId($this->customId)->setQuantity($this->quantity);
-        $this->payPalRequestId ??= $this->generateRequestId();
+        $this->payPalRequestId = $this->generateRequestId();
         $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)->withHeader('Prefer', 'return=representation')->post('v1/billing/subscriptions', $subscription);
         $result = $apiResponse->json();
         if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {

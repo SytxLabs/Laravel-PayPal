@@ -30,6 +30,7 @@ use SytxLabs\PayPal\Models\DTO\Subscription\Subscription as PayPalSubscription;
  * @property int $failed_payments_count
  * @property ?string $subscribable_type
  * @property ?string $subscribable_id
+ * @property ?Carbon $paypal_update_time
  *
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -57,6 +58,7 @@ class Subscription extends Model
         'failed_payments_count',
         'subscribable_type',
         'subscribable_id',
+        'paypal_update_time',
     ];
 
     protected $casts = [
@@ -64,6 +66,7 @@ class Subscription extends Model
         'status' => SubscriptionStatus::class,
         'next_billing_time' => 'datetime',
         'last_payment_time' => 'datetime',
+        'paypal_update_time' => 'datetime',
         'failed_payments_count' => 'integer',
     ];
 

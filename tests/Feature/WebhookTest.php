@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Schema;
 use SytxLabs\PayPal\Enums\DTO\Subscription\SubscriptionStatus;
 use SytxLabs\PayPal\Events\PayPalSubscriptionPaymentCompleted;
 use SytxLabs\PayPal\Events\PayPalSubscriptionPaymentFailed;
@@ -234,15 +235,118 @@ it('processes each webhook event id only once', function () {
     Event::assertDispatchedTimes(PayPalWebhookReceived::class, 1);
 });
 
-it('releases the event id when processing fails so PayPal can retry', function () {
+it('rolls back claim and changes when processing fails, so the PayPal retry is processed', function () {
     fakeWebhookVerify('SUCCESS');
-    Event::listen(PayPalWebhookReceived::class, static function () {
-        throw new RuntimeException('listener failed');
-    });
-    $payload = ['id' => 'WH-FAIL', 'event_type' => 'BILLING.SUBSCRIPTION.ACTIVATED', 'resource' => ['id' => 'I-1100', 'status' => 'ACTIVE']];
+    Subscription::query()->create(['subscription_id' => 'I-1100', 'plan_id' => 'P-1', 'status' => SubscriptionStatus::ACTIVE]);
+    $service = new class extends PayPalSubscription
+    {
+        public bool $fail = true;
+
+        public function recordFailedSubscriptionPayment(string $subscriptionId, ?int $failedPaymentsCount = null): ?Subscription
+        {
+            if ($this->fail) {
+                throw new RuntimeException('database down');
+            }
+            return parent::recordFailedSubscriptionPayment($subscriptionId, $failedPaymentsCount);
+        }
+    };
+    app()->instance('paypal_subscription_client', $service);
+    $payload = ['id' => 'WH-FAIL', 'event_type' => 'BILLING.SUBSCRIPTION.PAYMENT.FAILED', 'resource' => ['id' => 'I-1100', 'status' => 'SUSPENDED']];
 
     $this->withoutExceptionHandling();
-    expect(fn () => $this->postJson('paypal/webhook', $payload, webhookHeaders()))->toThrow(RuntimeException::class, 'listener failed');
+    expect(fn () => $this->postJson('paypal/webhook', $payload, webhookHeaders()))->toThrow(RuntimeException::class, 'database down');
 
-    expect(DB::table('sytxlabs_paypal_webhook_events')->where('event_id', 'WH-FAIL')->exists())->toBeFalse();
+    // the status sync before the failure was rolled back together with the claim
+    expect(DB::table('sytxlabs_paypal_webhook_events')->where('event_id', 'WH-FAIL')->exists())->toBeFalse()
+        ->and(Subscription::query()->firstWhere('subscription_id', 'I-1100')->status)->toBe(SubscriptionStatus::ACTIVE);
+
+    $service->fail = false;
+    $this->postJson('paypal/webhook', $payload, webhookHeaders())->assertOk()->assertJson(['status' => 'ok']);
+
+    $row = Subscription::query()->firstWhere('subscription_id', 'I-1100');
+    expect($row->status)->toBe(SubscriptionStatus::SUSPENDED)->and($row->failed_payments_count)->toBe(1);
+});
+
+it('does not repeat database changes when a listener fails', function () {
+    fakeWebhookVerify('SUCCESS');
+    Subscription::query()->create(['subscription_id' => 'I-1200', 'plan_id' => 'P-1', 'status' => SubscriptionStatus::ACTIVE]);
+    Event::listen(PayPalSubscriptionPaymentFailed::class, static function () {
+        throw new RuntimeException('listener failed');
+    });
+    $payload = ['id' => 'WH-LISTENER', 'event_type' => 'BILLING.SUBSCRIPTION.PAYMENT.FAILED', 'resource' => ['id' => 'I-1200', 'status' => 'ACTIVE']];
+
+    $this->postJson('paypal/webhook', $payload, webhookHeaders())->assertStatus(500);
+    $this->postJson('paypal/webhook', $payload, webhookHeaders())->assertOk()->assertJson(['status' => 'duplicate']);
+
+    expect(Subscription::query()->firstWhere('subscription_id', 'I-1200')->failed_payments_count)->toBe(1);
+});
+
+it('ignores an older state delivered after a newer one', function () {
+    fakeWebhookVerify('SUCCESS');
+
+    $this->postJson('paypal/webhook', [
+        'id' => 'WH-CANCEL',
+        'event_type' => 'BILLING.SUBSCRIPTION.CANCELLED',
+        'resource' => ['id' => 'I-1300', 'plan_id' => 'P-1', 'status' => 'CANCELLED', 'update_time' => '2026-09-30T10:05:00Z'],
+    ], webhookHeaders())->assertOk();
+    $this->postJson('paypal/webhook', [
+        'id' => 'WH-ACTIVATE-LATE',
+        'event_type' => 'BILLING.SUBSCRIPTION.ACTIVATED',
+        'resource' => ['id' => 'I-1300', 'plan_id' => 'P-1', 'status' => 'ACTIVE', 'update_time' => '2026-09-30T10:00:00Z'],
+    ], webhookHeaders())->assertOk();
+
+    $row = Subscription::query()->firstWhere('subscription_id', 'I-1300');
+    expect($row->status)->toBe(SubscriptionStatus::CANCELLED)
+        ->and($row->isActive())->toBeFalse()
+        ->and($row->paypal_update_time->toIso8601ZuluString())->toBe('2026-09-30T10:05:00Z');
+});
+
+it('uses the event time as version when the resource has no update_time', function () {
+    fakeWebhookVerify('SUCCESS');
+
+    $this->postJson('paypal/webhook', [
+        'id' => 'WH-SUSPEND',
+        'create_time' => '2026-09-30T11:00:00Z',
+        'event_type' => 'BILLING.SUBSCRIPTION.SUSPENDED',
+        'resource' => ['id' => 'I-1400', 'status' => 'SUSPENDED'],
+    ], webhookHeaders())->assertOk();
+    $this->postJson('paypal/webhook', [
+        'id' => 'WH-ACTIVATE-OLD',
+        'create_time' => '2026-09-30T09:00:00Z',
+        'event_type' => 'BILLING.SUBSCRIPTION.ACTIVATED',
+        'resource' => ['id' => 'I-1400', 'status' => 'ACTIVE'],
+    ], webhookHeaders())->assertOk();
+
+    expect(Subscription::query()->firstWhere('subscription_id', 'I-1400')->status)->toBe(SubscriptionStatus::SUSPENDED);
+});
+
+it('ignores an older sale than the stored last payment', function () {
+    fakeWebhookVerify('SUCCESS');
+    Subscription::query()->create(['subscription_id' => 'I-1500', 'status' => SubscriptionStatus::ACTIVE, 'last_payment_time' => '2026-09-01 10:00:00', 'last_payment_amount' => '9.99', 'last_payment_currency' => 'EUR']);
+
+    $this->postJson('paypal/webhook', [
+        'id' => 'WH-OLD-SALE',
+        'event_type' => 'PAYMENT.SALE.COMPLETED',
+        'resource' => ['id' => 'SALE-OLD', 'billing_agreement_id' => 'I-1500', 'amount' => ['total' => '4.99', 'currency' => 'EUR'], 'create_time' => '2026-08-01T10:00:00Z'],
+    ], webhookHeaders())->assertOk();
+
+    expect(Subscription::query()->firstWhere('subscription_id', 'I-1500')->last_payment_amount)->toBe('9.99');
+});
+
+it('rejects webhooks with 503 while the event table is missing', function () {
+    fakeWebhookVerify('SUCCESS');
+    Schema::drop('sytxlabs_paypal_webhook_events');
+    $payload = ['id' => 'WH-NOSTORE', 'event_type' => 'BILLING.SUBSCRIPTION.ACTIVATED', 'resource' => ['id' => 'I-1600', 'status' => 'ACTIVE']];
+
+    $this->postJson('paypal/webhook', $payload, webhookHeaders())->assertStatus(503)->assertJson(['status' => 'event_store_unavailable']);
+    expect(Subscription::query()->where('subscription_id', 'I-1600')->exists())->toBeFalse();
+});
+
+it('accepts webhooks without event table when deduplication is disabled', function () {
+    fakeWebhookVerify('SUCCESS');
+    Schema::drop('sytxlabs_paypal_webhook_events');
+    config(['paypal.webhook.deduplicate' => false]);
+
+    $this->postJson('paypal/webhook', ['id' => 'WH-NODEDUP', 'event_type' => 'BILLING.SUBSCRIPTION.ACTIVATED', 'resource' => ['id' => 'I-1700', 'status' => 'ACTIVE']], webhookHeaders())
+        ->assertOk()->assertJson(['status' => 'ok']);
 });

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create(config('paypal.database.webhook_event_table', 'sytxlabs_paypal_webhook_events'), static function (Blueprint $table) {
             $table->id();
 
-            $table->string('event_id')->unique();
+            $table->string('event_id', 191)->unique();
             $table->string('event_type');
             $table->string('resource_id')->nullable();
 

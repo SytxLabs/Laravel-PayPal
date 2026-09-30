@@ -18,6 +18,13 @@ use Throwable;
 class PayPalWebhookController
 {
     /**
+     * Events to dispatch once the database changes of the webhook are committed.
+     *
+     * @var object[]
+     */
+    private array $events = [];
+
+    /**
      * @throws Throwable
      */
     public function __invoke(Request $request): JsonResponse
@@ -37,19 +44,29 @@ class PayPalWebhookController
         $resource = $payload['resource'] ?? [];
         $eventId = $payload['id'] ?? null;
 
-        // PayPal re-delivers events it considers undelivered; handle every event id once.
-        if (!$service->claimWebhookEvent($eventId, $eventType, $resource['id'] ?? null)) {
+        // Without the events table PayPal retries would be processed twice: fail closed, PayPal retries later.
+        if (($service->config['webhook']['deduplicate'] ?? true) === true && !$service->hasWebhookEventStore()) {
+            $service->log('PayPal webhook rejected: webhook event table missing or database disabled', ['event_id' => $eventId, 'event_type' => $eventType]);
+            return response()->json(['status' => 'event_store_unavailable'], 503);
+        }
+
+        $subscription = null;
+        $this->events = [];
+        // Claim + database changes are one transaction: a failure rolls both back and PayPal's retry is processed again.
+        $processed = $service->processWebhookEventOnce($eventId, $eventType, $resource['id'] ?? null, function () use (&$subscription, $service, $eventType, $resource, $payload) {
+            $this->events = [];
+            $subscription = $this->handle($service, $eventType, $resource, $payload);
+        });
+        if (!$processed) {
             return response()->json(['status' => 'duplicate']);
         }
 
-        try {
-            $subscription = $this->handle($service, $eventType, $resource, $payload);
-            PayPalWebhookReceived::dispatch($eventType, $payload, $subscription);
-        } catch (Throwable $e) {
-            // let PayPal retry the event later
-            $service->releaseWebhookEvent($eventId);
-            throw $e;
+        // Dispatched after commit. The event is already marked as processed, so a failing listener is not
+        // retried by PayPal: use queued listeners for work that must not get lost.
+        foreach ($this->events as $event) {
+            event($event);
         }
+        PayPalWebhookReceived::dispatch($eventType, $payload, $subscription?->fresh());
 
         return response()->json(['status' => 'ok']);
     }
@@ -61,11 +78,11 @@ class PayPalWebhookController
     private function handle(PayPalSubscription $service, string $eventType, array $resource, array $payload): ?Subscription
     {
         if (str_starts_with($eventType, 'BILLING.SUBSCRIPTION.')) {
-            $subscription = $this->syncSubscription($service, $eventType, $resource);
+            $subscription = $this->syncSubscription($service, $eventType, $resource, $payload);
             if ($eventType === 'BILLING.SUBSCRIPTION.PAYMENT.FAILED' && isset($resource['id'])) {
                 $failedCount = $resource['billing_info']['failed_payments_count'] ?? null;
                 $subscription = $service->recordFailedSubscriptionPayment($resource['id'], $failedCount) ?? $subscription;
-                PayPalSubscriptionPaymentFailed::dispatch($resource['id'], $subscription?->failed_payments_count ?? $failedCount, $payload, $subscription);
+                $this->events[] = new PayPalSubscriptionPaymentFailed($resource['id'], $subscription?->failed_payments_count ?? $failedCount, $payload, $subscription);
             }
             return $subscription;
         }
@@ -75,33 +92,20 @@ class PayPalWebhookController
             return null;
         }
         $amount = self::saleAmount($resource);
-        return match ($eventType) {
-            'PAYMENT.SALE.COMPLETED' => $this->paymentCompleted($service, $subscriptionId, $amount, $resource, $payload),
-            'PAYMENT.SALE.REFUNDED', 'PAYMENT.SALE.REVERSED' => $this->paymentRefunded($service, $subscriptionId, $amount, $eventType === 'PAYMENT.SALE.REVERSED', $resource, $payload),
-            default => $service->loadSubscriptionFromDatabase($subscriptionId),
-        };
-    }
-
-    /**
-     * @param  array<string,mixed>  $resource
-     * @param  array<string,mixed>  $payload
-     */
-    private function paymentCompleted(PayPalSubscription $service, string $subscriptionId, ?Money $amount, array $resource, array $payload): ?Subscription
-    {
-        $subscription = $service->recordSubscriptionPayment($subscriptionId, $amount, $resource['create_time'] ?? null);
-        PayPalSubscriptionPaymentCompleted::dispatch($subscriptionId, $resource['id'] ?? null, $amount, $payload, $subscription);
-        return $subscription;
-    }
-
-    /**
-     * @param  array<string,mixed>  $resource
-     * @param  array<string,mixed>  $payload
-     */
-    private function paymentRefunded(PayPalSubscription $service, string $subscriptionId, ?Money $amount, bool $reversed, array $resource, array $payload): ?Subscription
-    {
-        $subscription = $service->loadSubscriptionFromDatabase($subscriptionId);
-        PayPalSubscriptionPaymentRefunded::dispatch($subscriptionId, $resource['sale_id'] ?? $resource['id'] ?? null, $amount, $reversed, $payload, $subscription);
-        return $subscription;
+        $saleId = $resource['sale_id'] ?? $resource['id'] ?? null;
+        switch ($eventType) {
+            case 'PAYMENT.SALE.COMPLETED':
+                $subscription = $service->recordSubscriptionPayment($subscriptionId, $amount, $resource['create_time'] ?? null);
+                $this->events[] = new PayPalSubscriptionPaymentCompleted($subscriptionId, $resource['id'] ?? null, $amount, $payload, $subscription);
+                return $subscription;
+            case 'PAYMENT.SALE.REFUNDED':
+            case 'PAYMENT.SALE.REVERSED':
+                $subscription = $service->loadSubscriptionFromDatabase($subscriptionId);
+                $this->events[] = new PayPalSubscriptionPaymentRefunded($subscriptionId, $saleId, $amount, $eventType === 'PAYMENT.SALE.REVERSED', $payload, $subscription);
+                return $subscription;
+            default:
+                return $service->loadSubscriptionFromDatabase($subscriptionId);
+        }
     }
 
     /**
@@ -122,8 +126,9 @@ class PayPalWebhookController
 
     /**
      * @param  array<string,mixed>  $resource
+     * @param  array<string,mixed>  $payload
      */
-    private function syncSubscription(PayPalSubscription $service, string $eventType, array $resource): ?Subscription
+    private function syncSubscription(PayPalSubscription $service, string $eventType, array $resource, array $payload): ?Subscription
     {
         if (($resource['id'] ?? null) === null) {
             return null;
@@ -131,6 +136,8 @@ class PayPalWebhookController
         $dto = PayPalSubscriptionDTO::fromArray($resource);
         // links of the webhook resource are API links, not the approval link we stored
         $dto->setLinks(null);
+        // version of this state, used to ignore out-of-order deliveries
+        $dto->setUpdateTime($dto->getUpdateTime() ?? $payload['create_time'] ?? null);
         $dto->setStatus($dto->getStatus() ?? match ($eventType) {
             'BILLING.SUBSCRIPTION.ACTIVATED', 'BILLING.SUBSCRIPTION.RE-ACTIVATED' => SubscriptionStatus::ACTIVE,
             'BILLING.SUBSCRIPTION.CANCELLED' => SubscriptionStatus::CANCELLED,

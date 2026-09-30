@@ -1,8 +1,9 @@
 <?php
 
-use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Psr\Log\LoggerInterface;
@@ -14,13 +15,7 @@ use SytxLabs\PayPal\Models\DTO\Money;
 use SytxLabs\PayPal\Models\DTO\Subscription\Subscription as DTOSubscription;
 use SytxLabs\PayPal\Models\Subscription;
 use SytxLabs\PayPal\Services\PayPalSubscription;
-
-class SubscriptionManagementTest extends Model
-{
-    protected $table = 'fake_subscribers';
-    protected $guarded = [];
-    public $timestamps = false;
-}
+use SytxLabs\PayPal\Tests\Fixtures\FakeSubscriber;
 
 function fakePayPalApi(array $extra = []): void
 {
@@ -56,6 +51,69 @@ describe('subscribable', function () {
         expect($row->subscribable_type)->toBe(FakeSubscriber::class)
             ->and((string) $row->subscribable_id)->toBe('7')
             ->and(Subscription::query()->subscribable($user)->pluck('subscription_id')->all())->toBe(['I-SUB']);
+    });
+});
+
+describe('consistency', function () {
+    it('creates a new subscription on every createSubscription call of the same instance', function () {
+        fakePayPalApi(['*/v1/billing/subscriptions' => Http::sequence()
+            ->push(['id' => 'I-FIRST', 'status' => 'APPROVAL_PENDING', 'links' => []], 201)
+            ->push(['id' => 'I-SECOND', 'status' => 'APPROVAL_PENDING', 'links' => []], 201)]);
+
+        $service = (new PayPalSubscription())->setPlanId('P-1');
+        $service->createSubscription();
+        $service->createSubscription();
+
+        $requestIds = Http::recorded()
+            ->filter(fn ($pair) => str_ends_with($pair[0]->url(), '/v1/billing/subscriptions'))
+            ->map(fn ($pair) => $pair[0]->header('PayPal-Request-Id')[0] ?? null)
+            ->values();
+        expect($service->getSubscription()->getId())->toBe('I-SECOND')
+            ->and($requestIds)->toHaveCount(2)
+            ->and($requestIds[0])->not->toBe($requestIds[1])
+            ->and(Subscription::query()->firstWhere('subscription_id', 'I-SECOND')->request_id)->toBe($requestIds[1]);
+    });
+
+    it('does not leak the create request id into later calls', function () {
+        fakePayPalApi([
+            '*/v1/billing/subscriptions/I-H/revise' => Http::response(['links' => []], 200),
+            '*/v1/billing/subscriptions' => Http::response(['id' => 'I-H', 'status' => 'APPROVAL_PENDING', 'links' => []], 201),
+        ]);
+
+        (new PayPalSubscription())->setPlanId('P-1')->createSubscription()->revise('P-2');
+
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/I-H/revise') && !$request->hasHeader('PayPal-Request-Id') && !$request->hasHeader('Prefer'));
+    });
+
+    it('does not overwrite a newer stored state with an older API response', function () {
+        Subscription::query()->create(['subscription_id' => 'I-OLD', 'plan_id' => 'P-1', 'status' => SubscriptionStatus::CANCELLED, 'paypal_update_time' => '2026-09-30 10:05:00']);
+        fakePayPalApi(['*/v1/billing/subscriptions/I-OLD' => Http::response(paypalSubscriptionResource('I-OLD', 'ACTIVE', ['update_time' => '2026-09-30T10:00:00Z']), 200)]);
+
+        (new PayPalSubscription())->getSubscriptionFromPayPal('I-OLD');
+
+        expect(Subscription::query()->firstWhere('subscription_id', 'I-OLD')->status)->toBe(SubscriptionStatus::CANCELLED);
+    });
+
+    it('applies a newer API response', function () {
+        Subscription::query()->create(['subscription_id' => 'I-NEW', 'plan_id' => 'P-1', 'status' => SubscriptionStatus::SUSPENDED, 'paypal_update_time' => '2026-09-30 10:00:00']);
+        fakePayPalApi(['*/v1/billing/subscriptions/I-NEW' => Http::response(paypalSubscriptionResource('I-NEW', 'ACTIVE', ['update_time' => '2026-09-30T10:05:00Z']), 200)]);
+
+        (new PayPalSubscription())->getSubscriptionFromPayPal('I-NEW');
+
+        $row = Subscription::query()->firstWhere('subscription_id', 'I-NEW');
+        expect($row->status)->toBe(SubscriptionStatus::ACTIVE)
+            ->and($row->paypal_update_time->toIso8601ZuluString())->toBe('2026-09-30T10:05:00Z');
+    });
+
+    it('keeps one row per subscription id', function () {
+        fakePayPalApi(['*/v1/billing/subscriptions/I-ONE' => Http::response(paypalSubscriptionResource('I-ONE'), 200)]);
+
+        $service = new PayPalSubscription();
+        $service->getSubscriptionFromPayPal('I-ONE');
+        $service->getSubscriptionFromPayPal('I-ONE');
+
+        expect(Subscription::query()->where('subscription_id', 'I-ONE')->count())->toBe(1);
+        expect(fn () => DB::table('sytxlabs_paypal_subscriptions')->insert(['subscription_id' => 'I-ONE']))->toThrow(QueryException::class);
     });
 });
 
