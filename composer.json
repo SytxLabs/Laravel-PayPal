@@ -3,7 +3,6 @@
     "description": "A Laravel package to interact with PayPal",
     "type": "library",
     "license": "MIT",
-    "version": "1.0.4",
     "keywords": [
         "laravel",
         "paypal",
@@ -29,18 +28,30 @@
             "SytxLabs\\PayPal\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "SytxLabs\\PayPal\\Tests\\": "tests/"
+        }
+    },
     "require": {
         "php": "^8.2|^8.3|^8.4|^8.5",
         "illuminate/support": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
+        "illuminate/database": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
+        "illuminate/routing": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
         "guzzlehttp/guzzle": "^7.8"
     },
     "require-dev": {
-        "portavice/laravel-pint-config": "^1.0|^2.0"
+        "portavice/laravel-pint-config": "^1.0|^2.0",
+        "laravel/framework": "^8.0|^9.0|^10.0|^11.0|^12.0|^13.0",
+        "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0",
+        "pestphp/pest": "^2.0|^3.0",
+        "mockery/mockery": "^1.6"
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "pestphp/pest-plugin": true
         }
     },
     "extra": {
@@ -50,13 +61,15 @@
             ],
             "aliases": {
                 "PayPal": "SytxLabs\\PayPal\\Facades\\PayPal",
-                "PayPalOrder": "SytxLabs\\PayPal\\Facades\\PayPalOrder"
+                "PayPalOrder": "SytxLabs\\PayPal\\Facades\\PayPalOrder",
+                "PayPalSubscription": "SytxLabs\\PayPal\\Facades\\PayPalSubscription"
             }
         }
     },
     "scripts": {
         "cs": "pint --config vendor/portavice/laravel-pint-config/pint.json --test",
-        "csfix": "pint --config vendor/portavice/laravel-pint-config/pint.json"
+        "csfix": "pint --config vendor/portavice/laravel-pint-config/pint.json",
+        "test": "pest"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

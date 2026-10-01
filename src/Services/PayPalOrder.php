@@ -123,8 +123,13 @@ class PayPalOrder extends PayPal
     {
         return $this->items->groupBy(
             static fn (Product $item) => $item->payee?->getEmailAddress() !== null ? $item->payee->getEmailAddress() . '_' . ($item->payee?->getMerchantId() ?? '') : ''
-        )->map(static fn (Collection $items) => $items->filter(static fn (Product $item) => (($item->totalPrice ?? ($item->unitPrice * $item->quantity)) + $item->tax + $item->shipping) - ($item->shippingDiscount + $item->discount) > 0))
+        )->map(static fn (Collection $items) => $items->filter(static fn (Product $item) => $item->getTotal() > 0))
             ->filter(static fn (Collection $items) => $items->count() > 0.00);
+    }
+
+    private static function money(float|int|null $amount): string
+    {
+        return number_format(round((float) $amount, 2), 2, '.', '');
     }
 
     /**
@@ -151,23 +156,23 @@ class PayPalOrder extends PayPal
             $payee = $sortedItems->first()?->payee;
             foreach ($sortedItems as $item) {
                 $code = $item->currencyCode ?? $this->currency ?? 'USD';
-                $items[] = (new Order\Item($item->name, new Money($code, $item->unitPrice . ''), $item->quantity . ''))
+                $items[] = (new Order\Item($item->name, new Money($code, self::money($item->unitPrice)), $item->quantity . ''))
                     ->setImageUrl($item->imageUrl)
                     ->setSku($item->sku)
                     ->setDescription($item->description)
                     ->setCategory($item->category)
                     ->setUrl($item->url)
                     ->setUpc($item->upc)
-                    ->setTax(new Money($code, ($item->tax ?? 0) . ''));
+                    ->setTax(new Money($code, self::money($item->tax ?? 0)));
             }
             $purchaseUnits[] = (new Order\PurchaseUnit())->setAmount(
-                (new Order\AmountWithBreakdown($currencyCode, $sortedItems->sum(static fn (Product $item) => (($item->totalPrice ?? ($item->unitPrice * $item->quantity)) + $item->tax + $item->shipping) - ($item->shippingDiscount + $item->discount)) . ''))->setBreakdown(
+                (new Order\AmountWithBreakdown($currencyCode, self::money($sortedItems->sum(static fn (Product $item) => $item->getTotal()))))->setBreakdown(
                     (new Order\AmountBreakdown())
-                        ->setItemTotal(new Money($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->totalPrice ?? ($item->unitPrice * $item->quantity)) . ''))
-                        ->setTaxTotal(new Money($currencyCode, ($sortedItems->sum(static fn (Product $item) => $item->tax)) . ''))
-                        ->setShipping(new Money($currencyCode, ($sortedItems->sum(static fn (Product $item) => $item->shipping)) . ''))
-                        ->setShippingDiscount(new Money($currencyCode, ($sortedItems->sum(static fn (Product $item) => $item->shippingDiscount)) . ''))
-                        ->setDiscount(new Money($currencyCode, $sortedItems->sum(static fn (Product $item) => $item->discount) . ''))
+                        ->setItemTotal(new Money($currencyCode, self::money($sortedItems->sum(static fn (Product $item) => $item->getItemTotal()))))
+                        ->setTaxTotal(new Money($currencyCode, self::money($sortedItems->sum(static fn (Product $item) => $item->getTaxTotal()))))
+                        ->setShipping(new Money($currencyCode, self::money($sortedItems->sum(static fn (Product $item) => $item->shipping))))
+                        ->setShippingDiscount(new Money($currencyCode, self::money($sortedItems->sum(static fn (Product $item) => $item->shippingDiscount))))
+                        ->setDiscount(new Money($currencyCode, self::money($sortedItems->sum(static fn (Product $item) => $item->discount))))
                 )
             )->setPayee($payee)
                 ->setPaymentInstruction($this->platformInstruction)

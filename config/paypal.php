@@ -24,6 +24,13 @@ return [
     'success_route' => '', // Redirect route on successful payment as example route('sytxlabs.paypal.success')
     'cancel_route' => '', // Redirect route on canceled payment as example route('sytxlabs.paypal.cancel')
 
+    'webhook_id' => env('PAYPAL_WEBHOOK_ID'), // PayPal webhook id used to verify incoming webhook signatures
+    'webhook' => [
+        'route_enabled' => env('PAYPAL_WEBHOOK_ROUTE_ENABLED', false), // Register the built-in webhook route
+        'path' => env('PAYPAL_WEBHOOK_PATH', 'paypal/webhook'), // URI for the built-in webhook route
+        'deduplicate' => env('PAYPAL_WEBHOOK_DEDUPLICATE', true), // Require the webhook event table; webhooks are rejected (503) while it is missing
+    ],
+
     'logging' => [
         'enabled' => env('PAYPAL_LOGGING_ENABLED', true), // Enable logging
         'channel' => env('PAYPAL_LOGGING_CHANNEL', config('logging.default', 'stack')), // Logging channel to use
@@ -35,5 +42,7 @@ return [
         'connection' => env('PAYPAL_DATABASE_CONNECTION'), // Database connection to use for storing transactions
         'oauth_table' => 'sytxlabs_paypal_oauth_tokens',
         'order_table' => 'sytxlabs_paypal_orders',
+        'subscription_table' => 'sytxlabs_paypal_subscriptions',
+        'webhook_event_table' => 'sytxlabs_paypal_webhook_events', // Processed webhook event ids, used to ignore PayPal retries
     ],
 ];

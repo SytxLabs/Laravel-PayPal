@@ -4,8 +4,10 @@ namespace SytxLabs\PayPal\Services;
 
 use Exception;
 use GuzzleHttp\Exception\RequestException;
+use Illuminate\Http\Client\Factory;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 use SytxLabs\PayPal\Models\DTO\OAuthToken;
 use SytxLabs\PayPal\Services\Traits\PayPalConfig;
 use SytxLabs\PayPal\Services\Traits\PayPalOAuthSave;
@@ -19,7 +21,12 @@ class PayPal
 
     private function buildNewClient(): PendingRequest
     {
-        $client = (new PendingRequest())->baseUrl($this->mode->getPayPalEnvironmentURL())->acceptJson();
+        // Resolve through the container's HTTP client factory when available so that
+        // Http::fake() can intercept requests (e.g. in tests); fall back otherwise.
+        $pendingRequest = (function_exists('app') && app()->bound(Factory::class))
+            ? app(Factory::class)->baseUrl($this->mode->getPayPalEnvironmentURL())
+            : (new PendingRequest())->baseUrl($this->mode->getPayPalEnvironmentURL());
+        $client = $pendingRequest->acceptJson();
         if (($this->config['timeout'] ?? null) !== null) {
             $client->timeout($this->config['timeout']);
         }
@@ -48,8 +55,8 @@ class PayPal
                     'grant_type' => 'client_credentials',
                 ]);
             if ($response->getStatusCode() !== 200) {
-                $this->log('Failed to get OAuth token');
-                return $this;
+                $this->log('Failed to get OAuth token', ['response' => $response->body()]);
+                throw new RuntimeException('Failed to get OAuth token');
             }
 
             $body = $response->json();
@@ -65,25 +72,29 @@ class PayPal
         } catch (RequestException $e) {
             $this->client = null;
             $this->log($e);
+            throw new RuntimeException('Failed to get OAuth token: ' . $e->getMessage(), 0, $e);
         }
         return $this;
     }
 
     /**
-     * @throws Exception
+     * Log a message when logging is enabled. Never throws, so callers can raise their own typed exception afterwards.
      */
     public function log(Exception|string $message, array $data = []): void
     {
-        if (($this->config['logging']['enabled'] ?? false) === true) {
-            $level = $this->config['logging']['level'];
-            $channel = Log::channel($this->config['logging']['channel']);
-            if (method_exists($channel, $level)) {
-                $channel->$level($message, $data);
-            } else {
-                $channel->error('Invalid log level');
-            }
+        if (($this->config['logging']['enabled'] ?? false) !== true) {
+            return;
+        }
+        $level = $this->config['logging']['level'] ?? 'info';
+        $channel = Log::channel($this->config['logging']['channel'] ?? null);
+        if ($message instanceof Exception) {
+            $data['exception'] = $message;
+            $message = $message->getMessage();
+        }
+        if (method_exists($channel, $level)) {
+            $channel->$level($message, $data);
         } else {
-            throw $message instanceof Exception ? $message : new Exception($message);
+            $channel->error('Invalid log level');
         }
     }
 
