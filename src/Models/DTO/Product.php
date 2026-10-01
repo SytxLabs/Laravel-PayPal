@@ -139,6 +139,21 @@ class Product implements JsonSerializable
         return $this;
     }
 
+    public function getItemTotal(): float
+    {
+        return round(round($this->unitPrice, 2) * $this->quantity, 2);
+    }
+
+    public function getTaxTotal(): float
+    {
+        return round(round($this->tax ?? 0, 2) * $this->quantity, 2);
+    }
+
+    public function getTotal(): float
+    {
+        return round($this->getItemTotal() + $this->getTaxTotal() + ($this->shipping ?? 0) - ($this->shippingDiscount ?? 0) - ($this->discount ?? 0), 2);
+    }
+
     public function toArray(): array
     {
         return [

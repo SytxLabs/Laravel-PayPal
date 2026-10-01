@@ -242,12 +242,12 @@ it('rolls back claim and changes when processing fails, so the PayPal retry is p
     {
         public bool $fail = true;
 
-        public function recordFailedSubscriptionPayment(string $subscriptionId, ?int $failedPaymentsCount = null): ?Subscription
+        public function recordFailedSubscriptionPayment(string $subscriptionId, ?int $failedPaymentsCount = null, ?string $time = null): ?Subscription
         {
             if ($this->fail) {
                 throw new RuntimeException('database down');
             }
-            return parent::recordFailedSubscriptionPayment($subscriptionId, $failedPaymentsCount);
+            return parent::recordFailedSubscriptionPayment($subscriptionId, $failedPaymentsCount, $time);
         }
     };
     app()->instance('paypal_subscription_client', $service);

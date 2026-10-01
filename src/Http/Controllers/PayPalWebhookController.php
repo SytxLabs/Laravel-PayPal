@@ -81,7 +81,7 @@ class PayPalWebhookController
             $subscription = $this->syncSubscription($service, $eventType, $resource, $payload);
             if ($eventType === 'BILLING.SUBSCRIPTION.PAYMENT.FAILED' && isset($resource['id'])) {
                 $failedCount = $resource['billing_info']['failed_payments_count'] ?? null;
-                $subscription = $service->recordFailedSubscriptionPayment($resource['id'], $failedCount) ?? $subscription;
+                $subscription = $service->recordFailedSubscriptionPayment($resource['id'], $failedCount, $resource['update_time'] ?? $payload['create_time'] ?? null) ?? $subscription;
                 $this->events[] = new PayPalSubscriptionPaymentFailed($resource['id'], $subscription?->failed_payments_count ?? $failedCount, $payload, $subscription);
             }
             return $subscription;

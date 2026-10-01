@@ -219,8 +219,9 @@ Processing guarantees:
   or crash rolls both back and PayPal's retry is processed again; a retry of a committed event is
   answered with `duplicate`.
 - **Events after commit:** the listed events are dispatched after the transaction. The event is
-  already marked as processed then, so a failing listener is *not* retried by PayPal. Use queued
-  listeners (`ShouldQueue`) for work that must not get lost.
+  already marked as processed then, so a failing listener is *not* retried by PayPal and a duplicate
+  delivery does not dispatch it again. Queued listeners (`ShouldQueue`) can retry their work, but only
+  once the job was enqueued: a crash or enqueue failure after commit can still lose the event.
 - **No out-of-order regressions:** every stored state remembers PayPal's `update_time`
   (`paypal_update_time`). An older webhook or API response does not overwrite a newer status, e.g.
   a delayed `ACTIVATED` after `CANCELLED`. Older sales do not replace the stored last payment.

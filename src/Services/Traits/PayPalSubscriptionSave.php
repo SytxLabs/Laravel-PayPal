@@ -70,6 +70,18 @@ trait PayPalSubscriptionSave
         return array_intersect_key($data, $this->subscriptionColumns);
     }
 
+    /**
+     * PayPal sends UTC timestamps. Convert them to the application timezone, which is how Eloquent
+     * writes and reads datetime columns, so stored values and comparisons share one convention.
+     */
+    protected function parsePayPalTime(?string $time): ?Carbon
+    {
+        if ($time === null || $time === '') {
+            return null;
+        }
+        return Carbon::parse($time)->setTimezone(config('app.timezone', date_default_timezone_get()));
+    }
+
     public function saveSubscriptionToDatabase(PayPalSubscription $subscription, ?string $requestId = null, ?string $productId = null, ?Model $subscribable = null): PayPalSubscription|Subscription
     {
         if (!$this->subscriptionTableExists() || $subscription->getId() === null) {
@@ -77,15 +89,15 @@ trait PayPalSubscriptionSave
         }
         $billingInfo = $subscription->getBillingInfo();
         $lastPayment = $billingInfo?->getLastPayment();
-        $version = $subscription->getUpdateTime() !== null ? Carbon::parse($subscription->getUpdateTime()) : null;
+        $version = $this->parsePayPalTime($subscription->getUpdateTime());
         $data = [
             'plan_id' => $subscription->getPlanId(),
             'status' => $subscription->getStatus(),
             'custom_id' => $subscription->getCustomId(),
             'quantity' => $subscription->getQuantity(),
             'links' => $subscription->getLinks(),
-            'next_billing_time' => $billingInfo?->getNextBillingTime(),
-            'last_payment_time' => $lastPayment?->getTime(),
+            'next_billing_time' => $this->parsePayPalTime($billingInfo?->getNextBillingTime()),
+            'last_payment_time' => $this->parsePayPalTime($lastPayment?->getTime()),
             'last_payment_amount' => $lastPayment?->getAmount()?->getValue(),
             'last_payment_currency' => $lastPayment?->getAmount()?->getCurrencyCode(),
             'failed_payments_count' => $billingInfo?->getFailedPaymentsCount(),
@@ -152,7 +164,7 @@ trait PayPalSubscriptionSave
         if ($this->loadSubscriptionFromDatabase($subscriptionId) === null) {
             return null;
         }
-        $paidAt = $time !== null ? Carbon::parse($time) : null;
+        $paidAt = $this->parsePayPalTime($time);
         return $this->writeSubscription($subscriptionId, static function (?Subscription $existing) use ($amount, $paidAt) {
             if ($paidAt !== null && $existing?->last_payment_time !== null && $paidAt->lt($existing->last_payment_time)) {
                 return [];
@@ -169,15 +181,23 @@ trait PayPalSubscriptionSave
     /**
      * Store a failed recurring payment (BILLING.SUBSCRIPTION.PAYMENT.FAILED) on the subscription.
      * PayPal's own counter wins when present, otherwise the stored counter is incremented.
+     * An event older than the stored update time or last payment is ignored.
      */
-    public function recordFailedSubscriptionPayment(string $subscriptionId, ?int $failedPaymentsCount = null): ?Subscription
+    public function recordFailedSubscriptionPayment(string $subscriptionId, ?int $failedPaymentsCount = null, ?string $time = null): ?Subscription
     {
         if ($this->loadSubscriptionFromDatabase($subscriptionId) === null) {
             return null;
         }
-        return $this->writeSubscription($subscriptionId, static fn (?Subscription $existing) => [
-            'failed_payments_count' => $failedPaymentsCount ?? (($existing?->failed_payments_count ?? 0) + 1),
-        ]);
+        $failedAt = $this->parsePayPalTime($time);
+        return $this->writeSubscription($subscriptionId, static function (?Subscription $existing) use ($failedPaymentsCount, $failedAt) {
+            if ($failedAt !== null && (
+                ($existing?->paypal_update_time !== null && $failedAt->lt($existing->paypal_update_time))
+                || ($existing?->last_payment_time !== null && $failedAt->lt($existing->last_payment_time))
+            )) {
+                return [];
+            }
+            return ['failed_payments_count' => $failedPaymentsCount ?? (($existing?->failed_payments_count ?? 0) + 1)];
+        });
     }
 
     protected function webhookEventTableExists(): bool

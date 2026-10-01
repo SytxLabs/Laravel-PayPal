@@ -52,6 +52,22 @@ it('sends the product total as a purchase unit amount', function () {
     });
 });
 
+it('multiplies the unit tax by the quantity like PayPal does', function () {
+    fakePayPalOrderHappyPath();
+    (new PayPalOrder())->addProduct((new Product('Widget', 15.0, 2, 'EUR'))->setTax(2.85)->setShipping(19.98))->createOrder();
+    Http::assertSent(function ($request) {
+        if (!str_contains($request->url(), '/v2/checkout/orders') || $request->method() !== 'POST') {
+            return false;
+        }
+        $unit = json_decode($request->body(), true)['purchase_units'][0] ?? [];
+        $breakdown = $unit['amount']['breakdown'] ?? [];
+        return ($unit['items'][0]['tax']['value'] ?? null) === '2.85'
+            && ($breakdown['item_total']['value'] ?? null) === '30.00'
+            && ($breakdown['tax_total']['value'] ?? null) === '5.70'
+            && ($unit['amount']['value'] ?? null) === '55.68';
+    });
+});
+
 it('persists the order to the database', function () {
     fakePayPalOrderHappyPath();
     (new PayPalOrder())->addProduct(new Product('Widget', 19.99, 2, 'EUR'))->createOrder();

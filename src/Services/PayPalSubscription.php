@@ -208,7 +208,7 @@ class PayPalSubscription extends PayPal
      */
     public function getOneTimeTotal(): float
     {
-        return (float) $this->oneTimeProducts->sum(static fn (Product $item) => (($item->totalPrice ?? ($item->unitPrice * $item->quantity)) + ($item->tax ?? 0) + ($item->shipping ?? 0)) - (($item->shippingDiscount ?? 0) + ($item->discount ?? 0)));
+        return round((float) $this->oneTimeProducts->sum(static fn (Product $item) => $item->getTotal()), 2);
     }
 
     private function resolveCurrency(): string
@@ -342,9 +342,11 @@ class PayPalSubscription extends PayPal
      * Only the final subscription creation yields an approval link, so the user
      * approves exactly once for both the one-time payment and the subscription.
      *
+     * @param  string|null  $requestId  PayPal-Request-Id to reuse so a retried call is idempotent; a new one is generated when omitted
+     *
      * @throws CreateSubscriptionException|CreatePlanException|CreateCatalogProductException|RuntimeException|Exception
      */
-    public function createSubscription(): self
+    public function createSubscription(?string $requestId = null): self
     {
         $client = $this->client();
         if ($this->planId === null) {
@@ -354,7 +356,7 @@ class PayPalSubscription extends PayPal
             throw new RuntimeException('No plan id available for subscription');
         }
         $subscription = (new Subscription())->setPlanId($this->planId)->setSubscriber($this->subscriber)->setApplicationContext($this->getApplicationContext())->setCustomId($this->customId)->setQuantity($this->quantity);
-        $this->payPalRequestId = $this->generateRequestId();
+        $this->payPalRequestId = $requestId ?? $this->generateRequestId();
         $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)->withHeader('Prefer', 'return=representation')->post('v1/billing/subscriptions', $subscription);
         $result = $apiResponse->json();
         if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {
