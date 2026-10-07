@@ -51,6 +51,9 @@ class PayPalSubscription extends PayPal
     private ?string $customId = null;
     private ?string $quantity = null;
     private ?Model $subscribable = null;
+    private ?string $startTime = null;
+    /** @var array<string,mixed>|null */
+    private ?array $planOverride = null;
 
     private ?string $payPalRequestId = null;
     private ?Subscription $subscription = null;
@@ -104,6 +107,56 @@ class PayPalSubscription extends PayPal
     public function getPlanId(): ?string
     {
         return $this->planId;
+    }
+
+    /**
+     * Start the subscription at a later time (UTC). A setup fee is still charged when the buyer approves;
+     * regular billing starts at this time. Can be changed with a PATCH of `start_time` while it is in the future.
+     */
+    public function setStartTime(DateTimeInterface|string|null $startTime): self
+    {
+        $this->startTime = self::formatTime($startTime);
+        return $this;
+    }
+
+    /**
+     * Override plan level attributes for this subscription only (PayPal `plan` override: `billing_cycles`, `payment_preferences`, `taxes`), e.g. a customer specific price. The overridden billing cycles have to adhere
+     * to the billing cycle definition of the plan. Once overridden, later changes to the plan do not affect the subscription.
+     *
+     * @param  array<string,mixed>|null  $override
+     */
+    public function setPlanOverride(?array $override): self
+    {
+        $this->planOverride = $override;
+        return $this;
+    }
+
+    /**
+     * Convenience for {@see self::setPlanOverride()}: override the price and/or the number of cycles of one billing cycle.
+     * Repeated calls for different sequences add further cycles.
+     */
+    public function overrideBillingCycle(int $sequence, ?Money $price = null, ?int $totalCycles = null): self
+    {
+        if ($price === null && $totalCycles === null) {
+            throw new RuntimeException('Nothing to override: pass a price and/or the total cycles');
+        }
+        $cycle = ['sequence' => $sequence];
+        if ($totalCycles !== null) {
+            $cycle['total_cycles'] = $totalCycles;
+        }
+        if ($price !== null) {
+            $cycle['pricing_scheme'] = ['fixed_price' => $price];
+        }
+        $override = $this->planOverride ?? [];
+        $override['billing_cycles'] = array_values(array_filter($override['billing_cycles'] ?? [], static fn (array $existing) => ($existing['sequence'] ?? null) !== $sequence));
+        $override['billing_cycles'][] = $cycle;
+        $this->planOverride = $override;
+        return $this;
+    }
+
+    private static function formatTime(DateTimeInterface|string|null $time): ?string
+    {
+        return $time instanceof DateTimeInterface ? Carbon::instance($time)->utc()->format('Y-m-d\TH:i:s\Z') : $time;
     }
 
     /**
@@ -339,8 +392,7 @@ class PayPalSubscription extends PayPal
 
     /**
      * Orchestrates catalog product -> plan (with setup_fee) -> subscription.
-     * Only the final subscription creation yields an approval link, so the user
-     * approves exactly once for both the one-time payment and the subscription.
+     * Only the final subscription creation yields an approval link, so the user approves exactly once for both the one-time payment and the subscription.
      *
      * @param  string|null  $requestId  PayPal-Request-Id to reuse so a retried call is idempotent; a new one is generated when omitted
      *
@@ -355,9 +407,13 @@ class PayPalSubscription extends PayPal
         if ($this->planId === null) {
             throw new RuntimeException('No plan id available for subscription');
         }
-        $subscription = (new Subscription())->setPlanId($this->planId)->setSubscriber($this->subscriber)->setApplicationContext($this->getApplicationContext())->setCustomId($this->customId)->setQuantity($this->quantity);
+        $subscription = (new Subscription())->setPlanId($this->planId)->setSubscriber($this->subscriber)->setApplicationContext($this->getApplicationContext())->setCustomId($this->customId)->setQuantity($this->quantity)->setStartTime($this->startTime);
         $this->payPalRequestId = $requestId ?? $this->generateRequestId();
-        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)->withHeader('Prefer', 'return=representation')->post('v1/billing/subscriptions', $subscription);
+        $body = $subscription->jsonSerialize(true);
+        if ($this->planOverride !== null) {
+            $body['plan'] = $this->planOverride;
+        }
+        $apiResponse = $client->withHeader('PayPal-Request-Id', $this->payPalRequestId)->withHeader('Prefer', 'return=representation')->post('v1/billing/subscriptions', $body);
         $result = $apiResponse->json();
         if (($result['id'] ?? null) === null || !in_array($apiResponse->getStatusCode(), [200, 201])) {
             $this->log('CreateSubscriptionException: ' . ($apiResponse->getReasonPhrase() ?? 'An error occurred'), [
@@ -561,6 +617,78 @@ class PayPalSubscription extends PayPal
             'capture_type' => 'OUTSTANDING_BALANCE',
             'amount' => $amount,
         ]), 'Failed to capture outstanding balance', ['subscription_id' => $id], [200, 201, 202]);
+        return $apiResponse->json() ?? [];
+    }
+
+    /**
+     * Apply JSON-patch operations to an ACTIVE or SUSPENDED subscription (per-subscription overrides).
+     * Paths PayPal allows: custom_id, plan.billing_cycles[@sequence==n].pricing_scheme.fixed_price / .tiers / .total_cycles,
+     * plan.payment_preferences.auto_bill_outstanding / payment_failure_threshold, plan.taxes.*, shipping_amount, start_time,
+     * subscriber.shipping_address, billing_info.outstanding_balance. Attributes that already completed cannot be updated, and a
+     * price update does not affect billing cycles within the next 10 days (PayPal-funded subscriptions).
+     *
+     * @param  array<int,array{op:string,path:string,value?:mixed}>  $operations
+     *
+     * @throws Exception
+     */
+    public function patchSubscription(array $operations): self
+    {
+        if ($operations === []) {
+            throw new RuntimeException('No patch operations given');
+        }
+        $client = $this->client();
+        $id = $this->requireSubscriptionId();
+        $this->ensureSuccessful($client->patch('v1/billing/subscriptions/' . $id, $operations), 'Failed to patch subscription', ['subscription_id' => $id, 'operations' => $operations], [200, 204]);
+        $this->getSubscriptionFromPayPal();
+        return $this;
+    }
+
+    /**
+     * Change the price of one billing cycle for this subscription only (e.g. grandfathering or a customer specific price).
+     *
+     * @throws Exception
+     */
+    public function overrideSubscriptionCyclePrice(int $sequence, Money $price): self
+    {
+        return $this->patchSubscription([['op' => 'replace', 'path' => '/plan/billing_cycles/@sequence==' . $sequence . '/pricing_scheme/fixed_price', 'value' => $price]]);
+    }
+
+    /**
+     * Change the number of cycles of one billing cycle for this subscription only (0 = until cancelled).
+     *
+     * @throws Exception
+     */
+    public function overrideSubscriptionCycleTotal(int $sequence, int $totalCycles): self
+    {
+        return $this->patchSubscription([['op' => 'replace', 'path' => '/plan/billing_cycles/@sequence==' . $sequence . '/total_cycles', 'value' => $totalCycles]]);
+    }
+
+    /**
+     * Move the start of a not yet started subscription (has to stay in the future).
+     *
+     * @throws Exception
+     */
+    public function changeStartTime(DateTimeInterface|string $startTime): self
+    {
+        return $this->patchSubscription([['op' => 'replace', 'path' => '/start_time', 'value' => self::formatTime($startTime)]]);
+    }
+
+    /**
+     * Refund a captured payment by its capture id (full refund without amount, partial with amount). Whether the id of a subscription
+     * transaction is accepted as capture id has to be checked against the PayPal sandbox for your account.
+     *
+     * @param  string|null  $requestId  PayPal-Request-Id to reuse so a retried call is idempotent; a new one is generated when omitted
+     * @return array<string,mixed> the PayPal refund (id, status, amount, ...)
+     *
+     * @throws Exception
+     */
+    public function refundTransaction(string $captureId, ?Money $amount = null, ?string $note = null, ?string $invoiceId = null, ?string $requestId = null): array
+    {
+        $body = array_filter(['amount' => $amount, 'note_to_payer' => $note, 'invoice_id' => $invoiceId], static fn ($value) => $value !== null);
+        $request = $this->client()->withHeader('PayPal-Request-Id', $requestId ?? $this->generateRequestId())->withHeader('Prefer', 'return=representation');
+        // PayPal wants an empty JSON object for a full refund
+        $apiResponse = $body === [] ? $request->withBody('{}')->post('v2/payments/captures/' . $captureId . '/refund') : $request->post('v2/payments/captures/' . $captureId . '/refund', $body);
+        $this->ensureSuccessful($apiResponse, 'Failed to refund transaction', ['capture_id' => $captureId], [200, 201]);
         return $apiResponse->json() ?? [];
     }
 

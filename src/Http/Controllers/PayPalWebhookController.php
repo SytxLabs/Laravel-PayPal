@@ -5,6 +5,7 @@ namespace SytxLabs\PayPal\Http\Controllers;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use SytxLabs\PayPal\Enums\DTO\Subscription\SubscriptionStatus;
+use SytxLabs\PayPal\Events\PayPalDisputeReceived;
 use SytxLabs\PayPal\Events\PayPalSubscriptionPaymentCompleted;
 use SytxLabs\PayPal\Events\PayPalSubscriptionPaymentFailed;
 use SytxLabs\PayPal\Events\PayPalSubscriptionPaymentRefunded;
@@ -53,7 +54,7 @@ class PayPalWebhookController
         $subscription = null;
         $this->events = [];
         // Claim + database changes are one transaction: a failure rolls both back and PayPal's retry is processed again.
-        $processed = $service->processWebhookEventOnce($eventId, $eventType, $resource['id'] ?? null, function () use (&$subscription, $service, $eventType, $resource, $payload) {
+        $processed = $service->processWebhookEventOnce($eventId, $eventType, $resource['id'] ?? $resource['dispute_id'] ?? null, function () use (&$subscription, $service, $eventType, $resource, $payload) {
             $this->events = [];
             $subscription = $this->handle($service, $eventType, $resource, $payload);
         });
@@ -77,6 +78,10 @@ class PayPalWebhookController
      */
     private function handle(PayPalSubscription $service, string $eventType, array $resource, array $payload): ?Subscription
     {
+        if (str_starts_with($eventType, 'CUSTOMER.DISPUTE.')) {
+            $this->events[] = self::disputeEvent($eventType, $resource, $payload);
+            return null;
+        }
         if (str_starts_with($eventType, 'BILLING.SUBSCRIPTION.')) {
             $subscription = $this->syncSubscription($service, $eventType, $resource, $payload);
             if ($eventType === 'BILLING.SUBSCRIPTION.PAYMENT.FAILED' && isset($resource['id'])) {
@@ -109,6 +114,29 @@ class PayPalWebhookController
     }
 
     /**
+     * Dispute resources follow the Customer Disputes API (dispute_id, status, reason, dispute_life_cycle_stage,
+     * dispute_amount, disputed_transactions[].seller_transaction_id, dispute_outcome.outcome_code).
+     *
+     * @param  array<string,mixed>  $resource
+     * @param  array<string,mixed>  $payload
+     */
+    private static function disputeEvent(string $eventType, array $resource, array $payload): PayPalDisputeReceived
+    {
+        $amount = $resource['dispute_amount'] ?? null;
+        return new PayPalDisputeReceived(
+            $eventType,
+            $resource['dispute_id'] ?? $resource['id'] ?? null,
+            $resource['status'] ?? null,
+            $resource['reason'] ?? null,
+            $resource['dispute_life_cycle_stage'] ?? null,
+            $resource['dispute_outcome']['outcome_code'] ?? null,
+            isset($amount['value'], $amount['currency_code']) ? new Money((string) $amount['currency_code'], (string) $amount['value']) : null,
+            array_values(array_filter(array_map(static fn ($transaction) => is_array($transaction) ? ($transaction['seller_transaction_id'] ?? null) : null, $resource['disputed_transactions'] ?? []), static fn ($id) => is_string($id) && $id !== '')),
+            $payload,
+        );
+    }
+
+    /**
      * Sale resources (v1 payments) use {total, currency} instead of {value, currency_code}.
      *
      * @param  array<string,mixed>  $resource
@@ -134,9 +162,7 @@ class PayPalWebhookController
             return null;
         }
         $dto = PayPalSubscriptionDTO::fromArray($resource);
-        // links of the webhook resource are API links, not the approval link we stored
         $dto->setLinks(null);
-        // version of this state, used to ignore out-of-order deliveries
         $dto->setUpdateTime($dto->getUpdateTime() ?? $payload['create_time'] ?? null);
         $dto->setStatus($dto->getStatus() ?? match ($eventType) {
             'BILLING.SUBSCRIPTION.ACTIVATED', 'BILLING.SUBSCRIPTION.RE-ACTIVATED' => SubscriptionStatus::ACTIVE,
