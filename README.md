@@ -165,6 +165,33 @@ $subscription->captureOutstandingBalance(new Money('EUR', '19.98'), 'Missed paym
 $subscription->listTransactions(now()->subMonth(), now());
 ```
 
+### Delayed start, per-subscription prices, refunds
+```php
+// start at a later time: a setup fee is still charged at approval, regular billing starts at start_time
+(new PayPalSubscription())->setPlanId('P-XXX')->setStartTime(now()->addDays(30))->createSubscription();
+
+// price of one billing cycle for this subscription only (customer specific price, grandfathering)
+(new PayPalSubscription())->setPlanId('P-XXX')
+    ->overrideBillingCycle(2, new Money('EUR', '0.80'))      // cycle sequence 2: new fixed price
+    ->overrideBillingCycle(1, new Money('EUR', '0.50'), 3)   // cycle sequence 1: price and number of cycles
+    ->createSubscription();
+
+// change a running subscription (PATCH): price or number of cycles of one billing cycle, start time (while in the future), raw operations
+$subscription->overrideSubscriptionCyclePrice(2, new Money('EUR', '1.30'));
+$subscription->overrideSubscriptionCycleTotal(1, 3);
+$subscription->changeStartTime(now()->addDays(10));
+$subscription->patchSubscription([['op' => 'replace', 'path' => '/custom_id', 'value' => 'customer-7']]);
+
+// refund a captured payment by its capture id (full refund without amount)
+$subscription->refundTransaction($captureId, new Money('EUR', '0.50'), 'Goodwill');
+```
+
+PayPal limits: at most **2 trial cycles** and exactly **one regular cycle** per plan (a cycle may span several periods via
+`total_cycles`). A price change by PATCH does not affect billing cycles within the next 10 days (PayPal-funded subscriptions);
+once a subscription is overridden, later plan changes do not affect it. There is no API to change the funding source of a
+PayPal-funded subscription: create a new subscription with `setStartTime()` at the end of the paid period and cancel the old
+one before its next billing time.
+
 ### Scheduler command
 PayPal charges subscriptions on its own. `paypal:subscription` fetches every active subscription
 whose next billing time has passed (longest overdue first) from PayPal and stores the result
@@ -209,6 +236,7 @@ is handled only once (PayPal retries are answered with `{"status": "duplicate"}`
 | `BILLING.SUBSCRIPTION.PAYMENT.FAILED` | `failed_payments_count`                      | `PayPalSubscriptionPaymentFailed`    |
 | `PAYMENT.SALE.COMPLETED`              | last payment, resets `failed_payments_count` | `PayPalSubscriptionPaymentCompleted` |
 | `PAYMENT.SALE.REFUNDED` / `REVERSED`  | –                                            | `PayPalSubscriptionPaymentRefunded`  |
+| `CUSTOMER.DISPUTE.CREATED` / `UPDATED` / `RESOLVED` | –                              | `PayPalDisputeReceived` (dispute id, status, reason, life cycle stage, outcome code, amount, disputed transaction ids) |
 
 `PayPalWebhookReceived` is dispatched for every event and carries the stored subscription
 (`$event->subscription`) when one matches. All events live in `SytxLabs\PayPal\Events`.
