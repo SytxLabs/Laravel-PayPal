@@ -71,4 +71,12 @@ trait PayPalOAuthSave
         }
         return $oAuth;
     }
+
+    public function forgetOAuthToken(): void
+    {
+        if (!$this->oAuthTableExists()) {
+            return;
+        }
+        $this->oAuthTable()?->delete();
+    }
 }

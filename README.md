@@ -70,6 +70,69 @@ $paypalOrder->captureOrder();
 $paypalOrder->captureOrder()->getOrderStatus();
 ```
 
+### Orders without the browser: read, capture, refund, verify a webhook
+
+For a server that books payments on its own - from a webhook, a cron job that reconciles open orders - the order service has
+stateless calls that work on ids and return what PayPal sent. They fetch their token like every other call, use the stored one
+while it is valid and swap it once when PayPal rejects it.
+
+```php
+$orders = new PayPalOrder();
+
+// the order as PayPal sent it (purchase units, payments, captures …)
+$order = $orders->readOrder($orderId);
+
+// capture; safe to call twice and from two places at once: the request id is derived from the order
+// ("capture-{id}"), and an order PayPal reports as already captured is simply read again.
+$order = $orders->captureOrderById($orderId);
+
+// refund a capture of an order (full without amount); pass a request id of your own to repeat a call safely
+$refund = $orders->refundCapture($captureId, new Money('EUR', '5.00'), 'Goodwill', 'INV-7', requestId: 'refund-INV-7');
+```
+
+`SytxLabs\PayPal\Support\OrderPayments` reads the money out of such an order, so you book what PayPal collected and not what a
+browser or a payload claims:
+
+```php
+use SytxLabs\PayPal\Support\OrderPayments;
+
+OrderPayments::approved($order);   // Money: what the payer approved (sum of the purchase units), null if unclear
+OrderPayments::collected($order);  // Money: only a COMPLETED order, only its COMPLETED captures; null otherwise
+OrderPayments::captures($order);   // [['id', 'status', 'reference_id' (purchase unit), 'amount', 'final_capture'], …]
+OrderPayments::orderIdOf($webhookResource); // the order a capture/refund resource of a webhook belongs to
+OrderPayments::sum(['0.10', '0.20']);       // "0.30" - decimal strings, no float noise
+```
+
+Any other REST call goes through `api()` (a client for the API host, built on first use, a copy per call):
+
+```php
+$response = $orders->api()->get('v2/payments/captures/' . $captureId);
+```
+
+`api()` and the calls above exist on `PayPal`, `PayPalOrder` and `PayPalSubscription`.
+
+#### Verifying a webhook without subscriptions
+
+`webhookSignatureStatus()` (every service, needs `webhook_id`) separates a **wrong** signature from a PayPal that **could not decide**,
+which an application answers differently - 400, or 503 so that PayPal delivers the event again:
+
+```php
+use SytxLabs\PayPal\Enums\PayPalWebhookSignatureStatus;
+
+$status = $orders->webhookSignatureStatus($request->headers->all(), $request->getContent());
+
+return match ($status) {
+    PayPalWebhookSignatureStatus::Valid => $handle(),
+    PayPalWebhookSignatureStatus::Invalid => response('', 400),
+    PayPalWebhookSignatureStatus::Unavailable => response('', 503),
+};
+```
+
+Pass the **raw body** (`getContent()`): it is handed to PayPal byte for byte, because PayPal signed these bytes and a decoded and
+re-encoded array can differ (empty objects, escapes, number formats). Requests that do not look like PayPal's - another algorithm
+than `SHA256withRSA`, a certificate URL that is not on `api[-m][.sandbox].paypal.com`, a missing header, a body that is not JSON - are
+`Invalid` without a call to PayPal.
+
 ## PayPal Subscriptions
 
 Subscriptions let you charge a recurring amount. To combine a **one-time payment** with
