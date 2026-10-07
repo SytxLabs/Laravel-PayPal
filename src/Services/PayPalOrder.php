@@ -5,6 +5,7 @@
 namespace SytxLabs\PayPal\Services;
 
 use Exception;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Routing\ResponseFactory;
@@ -28,6 +29,8 @@ use SytxLabs\PayPal\Models\DTO\Product;
 use SytxLabs\PayPal\Models\DTO\Shipping\OrderTrackerRequest;
 use SytxLabs\PayPal\Models\Order as OrderModel;
 use SytxLabs\PayPal\Services\Traits\PayPalOrderSave;
+use SytxLabs\PayPal\Support\OrderPayments;
+use Throwable;
 
 class PayPalOrder extends PayPal
 {
@@ -423,5 +426,59 @@ class PayPalOrder extends PayPal
         $this->order->setIntent($intent);
         $this->saveOrderToDatabase($this->order, $this->payPalRequestId);
         return $this;
+    }
+
+    /**
+     * Reads an order from PayPal as PayPal sent it (purchase units, payments, captures …) - for the money in it see
+     * {@see OrderPayments}. Stateless: does not touch the order held by this service or the database.
+     *
+     * @return array<string,mixed>
+     *
+     * @throws RuntimeException|ConnectionException when PayPal does not answer with the order
+     */
+    public function readOrder(string $id): array
+    {
+        $apiResponse = $this->callApi(static fn (PendingRequest $client) => $client->get('v2/checkout/orders/' . rawurlencode($id)));
+        if (!in_array($apiResponse->getStatusCode(), [200, 201], true) || !is_array($apiResponse->json())) {
+            $this->log('Failed to read order from PayPal', ['response' => $apiResponse->body(), 'order_id' => $id]);
+            throw new RuntimeException('PayPal order ' . $id . ' could not be read (status ' . $apiResponse->getStatusCode() . ')');
+        }
+        return $apiResponse->json();
+    }
+
+    /**
+     * Captures an approved order by its id and returns the order as PayPal sent it afterwards. Stateless, for a server that
+     * captures without the payer's browser (webhook) or next to it: the request carries a PayPal-Request-Id derived from the order,
+     * so the browser return and a webhook capturing at the same time are one request for PayPal, and an order PayPal reports as
+     * already captured is read again instead of failing. The stored order row follows when there is one.
+     *
+     * @param  string|null  $requestId  PayPal-Request-Id; by default `capture-{order id}`
+     * @return array<string,mixed> the order, see {@see OrderPayments::collected()}
+     *
+     * @throws CaptureOrderException when PayPal refuses the capture
+     * @throws RuntimeException|ConnectionException when PayPal cannot be reached for a token
+     */
+    public function captureOrderById(string $id, ?string $requestId = null): array
+    {
+        $requestId ??= 'capture-' . $id;
+        $apiResponse = $this->callApi(static fn (PendingRequest $client) => $client
+            ->withHeader('PayPal-Request-Id', $requestId)
+            ->withHeader('Prefer', 'return=representation')
+            ->withBody('{}', 'application/json')
+            ->post('v2/checkout/orders/' . rawurlencode($id) . '/capture'));
+        if ($apiResponse->getStatusCode() === 422 && str_contains($apiResponse->body(), 'ORDER_ALREADY_CAPTURED')) {
+            return $this->readOrder($id);
+        }
+        if (!in_array($apiResponse->getStatusCode(), [200, 201], true) || !is_array($apiResponse->json())) {
+            $this->log('CaptureOrderException: ' . ($apiResponse->getReasonPhrase() ?: 'An error occurred'), ['response' => $apiResponse->body(), 'request_id' => $requestId, 'order_id' => $id]);
+            throw new CaptureOrderException($apiResponse->getReasonPhrase() ?: 'An error occurred', $apiResponse);
+        }
+        try {
+            $this->saveOrderToDatabase(Order::fromArray($apiResponse->json()));
+        } catch (Throwable $e) {
+            // the money is captured; a row that cannot follow is not worth failing the call
+            $this->log('Captured order could not be stored', ['order_id' => $id, 'exception' => $e->getMessage()]);
+        }
+        return $apiResponse->json();
     }
 }
